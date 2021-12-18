@@ -5,7 +5,7 @@ class User:
         self.username=username
         self.password=password
 
-    def changeUsername(self,newUsername):
+    def changeUsername(self, newUsername):
         self.username=newUsername
 
     def showUsername(self):
