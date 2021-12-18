@@ -37,5 +37,5 @@ def rsa_receive(cipher_msg, pubKeySender, privKeyReceiver):
 
     if verifySHA1(cipher_msg, signature, pubKeySender):
         return msg
-    else
+    else:
         return False
