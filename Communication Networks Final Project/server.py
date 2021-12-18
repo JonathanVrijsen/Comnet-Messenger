@@ -3,6 +3,7 @@ from socket import *
 from conversation import Conversation
 from message import Message
 import threading
+import asymmetricKeying
 
 
 # class connectedUser:
@@ -26,6 +27,7 @@ class Server:
         self.serverPort = 12000
         self.serverSocket = socket(AF_INET, SOCK_STREAM)
         self.serverSocket.bind(('', self.serverPort))
+        (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
 
     def listen(self):
         self.serverSocket.listen(64)
@@ -37,25 +39,39 @@ class Server:
 
         #create new connected user
         newUser = User(username)
-        newConnectedUser = (connectionSocket, newUser, threading.Thread(target=self.connected_user_listen(), args=(connectionSocket, newUser , None)))
+        newThreat = threading.Thread(target=self.connected_user_listen(), args=(connectionSocket, newUser , None))
+        newConnectedUser = (connectionSocket, newUser, newThreat)
         self.connectedUsers.append(newConnectedUser)
 
         #note that it's possible that multiple clients are logged in to the same user
 
-    def connected_user_listen(self, connectionSocket, newUser):
+        newConnectedUser(2).start()
+
+    def connected_user_listen(self, connectionSocket, user):
         while(True):
             self.connectionSocket.listen(16)
-            rcvdContent = self.connectionSocket.recv(1024)
-            sender = newUser
+            totalRcvdContent = self.connectionSocket.recv(1024)
+
+            #split totalRcvdContent into signature (always 128 bytes long) and the rcvdContent
+
+            rcvdContent = asymmetricKeying.decrypt(rcvdContent, self.privKey)
+
+            if asymmetricKeying.verifySHA1(rcvdContent, signature, pubKeySender):
+                print('Signature verified')
+            else:
+                print('Signature not verified')
+
+
+            sender = user
 
             #extract conversation id and content
 
-            content=""
-            message=Message(sender, content)
+            content = ""
+            message = Message(sender, content)
 
-            receiverNames=[]
-            id=0
-            newConversation=True
+            receiverNames = []
+            id = 0
+            newConversation = True
 
             #check if message id is in existing conversations
             for conversation in self.conversations:
