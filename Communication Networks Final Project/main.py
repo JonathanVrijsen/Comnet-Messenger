@@ -1,4 +1,4 @@
-import asymmetricKeying
+from asymmetricKeying import *
 
 (pubKeySender, privKeySender)=asymmetricKeying.generateKeys()
 (pubKeyReceiver, privKeyReceiver)=asymmetricKeying.generateKeys()

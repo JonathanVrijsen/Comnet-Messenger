@@ -11,6 +11,7 @@ class Client:
 
     def __init__(self):
         (pubKey, privKey) = generateKeys()
+
         (server_ip,server_socket,key_server_ip,key_server_socket) = self.get_server_information(self)
         pass
 
