@@ -1,6 +1,9 @@
 from socket import *
 from requests import get
 
+from User import User
+
+
 #from click._compat import raw_input
 
 public_ip = get('https://api.ipify.org').text
