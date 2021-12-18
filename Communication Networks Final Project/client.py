@@ -1,9 +1,11 @@
+from main import generateKeys
 from user import User
 
 class Client:
     user = None
 
     def __init__(self):
+        (pubKey, privKey)=generateKeys()
         pass
 
     def login(self, username, password):

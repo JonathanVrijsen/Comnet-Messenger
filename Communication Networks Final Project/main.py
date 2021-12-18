@@ -21,22 +21,23 @@ def verifySHA1(content, signature, key):
     except:
         return False
 
-(pubKey, privKey)=generateKeys()
+(pubKeySender, privKeySender)=generateKeys()
+(pubKeyReceiver, privKeyReceiver)=generateKeys()
 
 content=input('Enter a message:')
-ciphercontent=encrypt(content, pubKey)
+ciphercontent=encrypt(content, pubKeyReceiver)
 
-signature = signSHA1(content, privKey)
+signature = signSHA1(content, privKeySender)
 
 #at the other end
-plaintext=decrypt(ciphercontent, privKey)
+plaintext=decrypt(ciphercontent, privKeyReceiver)
 print(f'Cipher text: {ciphercontent}')
 print(f'Signature: {signature}')
 
 if plaintext:
     print(f'Plain text: {plaintext}')
 
-if verifySHA1(plaintext, signature, pubKey):
+if verifySHA1(plaintext, signature, pubKeySender):
     print('Signature verified')
 else:
     print('Signature not verified')
