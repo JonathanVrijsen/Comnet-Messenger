@@ -6,7 +6,7 @@ import threading
 import asymmetricKeying
 
 
-class ConnectedUser:
+class ConnectedClient:
     def __int__(self, connectionSocket, pubKey, user):
         self.connectionSocket = connectionSocket
         self.user = user
@@ -16,7 +16,7 @@ class ConnectedUser:
 class Server:
     def __init__(self):
         self.conversations = []
-        self.connectedUsers_and_threat = []
+        self.connectedClients_and_threat = []
 
         self.serverPort = 12000
         self.serverSocket = socket(AF_INET, SOCK_STREAM)
@@ -37,23 +37,23 @@ class Server:
         #somehow get public key of sender
         newPubKey = 0
 
-        newConnectedUser=ConnectedUser(connectionSocket, newPubKey, newUser)
+        newConnectedClient=ConnectedClient(connectionSocket, newPubKey, newUser)
 
-        newThreat = threading.Thread(target=self.connected_user_listen(), args=(newConnectedUser, None))
+        newThreat = threading.Thread(target=self.connected_user_listen(), args=(newConnectedClient, None))
         newThreat.start()
 
-        self.connectedUsers_and_threat.append((newConnectedUser, newThreat))
+        self.connectedClients_and_threat.append((newConnectedClient, newThreat))
 
         #note that it's possible that multiple clients are logged in to the same user
 
-    def connected_user_listen(self, connectedUser):
+    def connected_user_listen(self, connectedClient):
         while(True):
 
-            connectionSocket = connectedUser.connectionSocket
+            connectionSocket = connectedClient.connectionSocket
 
             self.connectionSocket.listen(16)
             rcvdContent = self.connectionSocket.recv(1024)
-            rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedUser.pubKey, self.privKey)
+            rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedClient.pubKey, self.privKey)
 
             #extract conversation id and content from rcvdContent
             #string has following form: id-content, so split at first occurence of "-"
@@ -61,7 +61,7 @@ class Server:
 
             id=int(id)
 
-            sender = connectedUser.user
+            sender = connectedClient.user
             message = Message(sender, content)
 
             newConversation = True
@@ -98,7 +98,8 @@ class Server:
 
             for receiver in members:
                 #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
-                for tempConnectedUser in self.connectedUsers:
-                    if receiver == tempConnectedUser.user and tempConnectedUser.connectionSocket != connectedUser.connectionSocket:
-                        message=asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedUser.pubKey)
-                        tempConnectedUser.connectionSocket.send(message)
+                for temp in self.connectedClients_and_threat:
+                    tempConnectedClient = temp(1)
+                    if receiver == tempConnectedClient.user and tempConnectedClient.connectionSocket != connectedClient.connectionSocket:
+                        message=asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedClient.pubKey)
+                        tempConnectedClient.connectionSocket.send(message)
