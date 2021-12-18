@@ -39,7 +39,7 @@ class Server:
 
         newConnectedUser=ConnectedUser(connectionSocket, newPubKey, newUser)
 
-        newThreat = threading.Thread(target=self.connected_user_listen(), args=(connectedUser, None))
+        newThreat = threading.Thread(target=self.connected_user_listen(), args=(newConnectedUser, None))
         newThreat.start()
 
         self.connectedUsers_and_threat.append((newConnectedUser, newThreat))
