@@ -21,13 +21,15 @@ def verifySHA1(content, signature, key):
     except:
         return False
 
+
 def rsa_sendable(msg, privKeySender, pubKeyReceiver): #used by all the piers that need to send any content
     #assuming message is a string
     msg = msg.encode('ascii')
 
     cipher_msg = encrypt(msg, pubKeyReceiver)
     signature = signSHA1(msg, privKeySender)
-    return signature.join(cipher_msg)
+    return signature + cipher_msg
+
 
 def rsa_receive(cipher_msg, pubKeySender, privKeyReceiver):
     signature = cipher_msg[:128] #1024 bits key used, so signature is always 128 bytes
@@ -35,7 +37,9 @@ def rsa_receive(cipher_msg, pubKeySender, privKeyReceiver):
 
     msg = decrypt(cipher_msg, privKeyReceiver)
 
-    if verifySHA1(cipher_msg, signature, pubKeySender):
+    if verifySHA1(msg, signature, pubKeySender):
         return msg
     else:
         return False
+
+

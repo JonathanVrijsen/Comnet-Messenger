@@ -56,7 +56,6 @@ class Server:
 
             rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedUser.pubKey, self.privKey)
 
-
             sender = connectedUser.user
 
             #extract conversation id and content
