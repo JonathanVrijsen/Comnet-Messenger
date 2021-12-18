@@ -7,7 +7,7 @@ import asymmetricKeying
 
 
 class ConnectedClient:
-    def __int__(self, connectionSocket, pubKey, user):
+    def __init__(self, connectionSocket, pubKey, user):
         self.connectionSocket = connectionSocket
         self.user = user
         self.pubKey=pubKey
