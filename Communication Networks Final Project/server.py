@@ -6,23 +6,17 @@ import threading
 import asymmetricKeying
 
 
-# class connectedUser:
-#     def __int__(self, connectionSocket, user):
-#         self.connectionSocket = connectionSocket
-#         self.user = user
-#         self.listenThread = threading.Thread(target=self.listen())
-#         self.listenThread.start()
-#
-#     def listen(self):
-#         while(True):
-#             self.connectionSocket.listen(16)
-#             rcvdContent = self.connectionSocket.recv(1024)
+class ConnectedUser:
+    def __int__(self, connectionSocket, pubKey, user):
+        self.connectionSocket = connectionSocket
+        self.user = user
+        self.pubKey=pubKey
 
 
 class Server:
     def __init__(self):
         self.conversations = []
-        self.connectedUsers = []
+        self.connectedUsers_and_threat = []
 
         self.serverPort = 12000
         self.serverSocket = socket(AF_INET, SOCK_STREAM)
@@ -39,30 +33,31 @@ class Server:
 
         #create new connected user
         newUser = User(username)
-        newThreat = threading.Thread(target=self.connected_user_listen(), args=(connectionSocket, newUser , None))
-        newConnectedUser = (connectionSocket, newUser, newThreat)
-        self.connectedUsers.append(newConnectedUser)
+
+        #somehow get public key of sender
+        newPubKey = 0
+
+        newConnectedUser=ConnectedUser(connectionSocket, newPubKey, newUser)
+
+        newThreat = threading.Thread(target=self.connected_user_listen(), args=(connectedUser, None))
+        newThreat.start()
+
+        self.connectedUsers_and_threat.append((newConnectedUser, newThreat))
 
         #note that it's possible that multiple clients are logged in to the same user
 
-        newConnectedUser(2).start()
-
-    def connected_user_listen(self, connectionSocket, user):
+    def connected_user_listen(self, connectedUser):
         while(True):
+
+            connectionSocket = connectedUser.connectionSocket
+
             self.connectionSocket.listen(16)
-            totalRcvdContent = self.connectionSocket.recv(1024)
+            rcvdContent = self.connectionSocket.recv(1024)
 
-            #split totalRcvdContent into signature (always 128 bytes long) and the rcvdContent
-
-            rcvdContent = asymmetricKeying.decrypt(rcvdContent, self.privKey)
-
-            if asymmetricKeying.verifySHA1(rcvdContent, signature, pubKeySender):
-                print('Signature verified')
-            else:
-                print('Signature not verified')
+            rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedUser.pubKey, self.privKey)
 
 
-            sender = user
+            sender = connectedUser.user
 
             #extract conversation id and content
 
