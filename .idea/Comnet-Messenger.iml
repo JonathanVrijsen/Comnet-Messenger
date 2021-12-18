@@ -6,7 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/Project File/venv" />
       <excludeFolder url="file://$MODULE_DIR$/Communication Networks Final Project/venv" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.9 (Comnet-Messenger)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

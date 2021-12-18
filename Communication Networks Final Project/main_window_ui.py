@@ -23,9 +23,9 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.M_HostCreateButton = QtWidgets.QPushButton(self.centralwidget)
-        self.M_HostCreateButton.setObjectName("M_HostCreateButton")
-        self.horizontalLayout.addWidget(self.M_HostCreateButton)
+        self.M_ClientCreateButton = QtWidgets.QPushButton(self.centralwidget)
+        self.M_ClientCreateButton.setObjectName("M_ClientCreateButton")
+        self.horizontalLayout.addWidget(self.M_ClientCreateButton)
         self.M_ServerOverviewButton = QtWidgets.QPushButton(self.centralwidget)
         self.M_ServerOverviewButton.setObjectName("M_ServerOverviewButton")
         self.horizontalLayout.addWidget(self.M_ServerOverviewButton)
@@ -52,7 +52,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.M_HostCreateButton.setText(_translate("MainWindow", "Create new host"))
+        self.M_ClientCreateButton.setText(_translate("MainWindow", "Create new client"))
         self.M_ServerOverviewButton.setText(_translate("MainWindow", "Server Overview"))
         self.M_CreateKeyServerButton.setText(_translate("MainWindow", "CreateKeyserver"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))

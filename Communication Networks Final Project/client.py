@@ -1,5 +1,6 @@
 from asymmetricKeying import generateKeys
 from user import User
+from socket import *
 
 
 class Client:
@@ -28,9 +29,14 @@ class Client:
 
         pass
 
-    def send_message(self, conversation):
-        content = ""  # get content from the gui
-        conversation.add_message(content, self.user.username)
+    def send_message(self, message, conversation = None):
+        content = message  # get content from the gui
+        b = bytes(content, 'utf-8')
+        #conversation.add_message(content, self.user.username)
+        clientSocket = socket(AF_INET, SOCK_STREAM)
+        clientSocket.connect((self.server_ip, self.server_socket))
+        clientSocket.send(b)
+        clientSocket.close()
 
     def logout(self):
         # go back to begin screen

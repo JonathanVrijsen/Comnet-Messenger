@@ -6,30 +6,34 @@ from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
 
 from main_window_ui import Ui_MainWindow
-from host_window_ui import Ui_Form
+from client_window_ui import Ui_Form
 from server_window_ui import Ui_ServerWind
 
-import client
+from threading import *
+
+from client import Client
+from server import *
 
 
 class MainMenu(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.M_HostCreateButton.clicked.connect(self.create_host)
+        self.M_ClientCreateButton.clicked.connect(self.create_client_window)
         self.M_ServerOverviewButton.clicked.connect(self.create_server_overview)
 
-        self.hosts = []
-        self.NewHost = None
+        self.client_windows = []
+        self.newClientWindow = None
         self.server_overview = None
 
-    def create_host(self):
-        self.NewHost = HostWindow()
-        self.NewHost.show()
-        self.hosts.append(self.NewHost)
+
+    def create_client_window(self):
+        self.newClientWindow = ClientWindow()
+        self.newClientWindow.show()
+        self.client_windows.append(self.newClientWindow)
 
     def create_server_overview(self):
-        self.server_overview = server_overview()
+        self.server_overview = ServerOverview()
         self.server_overview.show()
 
     def closeEvent(self, event):
@@ -37,23 +41,28 @@ class MainMenu(QMainWindow, Ui_MainWindow):
         app.closeAllWindows()
 
 
-class HostWindow(QWidget, Ui_Form):
+class ClientWindow(QWidget, Ui_Form):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.setWindowTitle("NewHost")
+        self.setWindowTitle("NewClient")
 
         self.H_passwordBox.setEchoMode(QLineEdit.Password)
+        self.H_RegpasswordBox1.setEchoMode(QLineEdit.Password)
+        self.H_RegpasswordBox2.setEchoMode(QLineEdit.Password)
+        self.H_RegpasswordBox3.setEchoMode(QLineEdit.Password)
+
 
         self.stackedWidget.setCurrentWidget(self.page)
         self.H_LoginButton.clicked.connect(self.login)
         self.H_LogoutButton.clicked.connect(self.logout)
         self.H_ContactList.clicked.connect(self.contact_clicked)
+        self.H_sendButton.clicked.connect(self.send_msg)
 
         self.username = None
         # self.password = None
         self.contactList = []
-        self.host_client = client.Client()
+        self.client = Client()
 
     def login(self):
         self.stackedWidget.setCurrentWidget(self.page_2)
@@ -61,7 +70,7 @@ class HostWindow(QWidget, Ui_Form):
         self.username = self.H_usernameBox.toPlainText()
         self.password = self.H_passwordBox.text()
         print(self.password)
-        self.host_client.login(self.username, self.password)
+        self.client.login(self.username, self.password)
         tile = "User: " + self.username
         self.setWindowTitle(tile)
 
@@ -73,7 +82,7 @@ class HostWindow(QWidget, Ui_Form):
     def logout(self):
         self.stackedWidget.setCurrentWidget(self.page)
         self.H_passwordBox.clear()
-        self.setWindowTitle("NewHost")
+        self.setWindowTitle("NewClient")
         self.H_ContactList.clear()
 
     def contact_clicked(self, contact):
@@ -92,12 +101,37 @@ class HostWindow(QWidget, Ui_Form):
             msg.setTextAlignment(Qt.AlignRight)
             self.H_ConvList.addItem(msg)
 
+    def send_msg(self):
+        msg = self.H_MessageBox.text()
+        self.client.send_message(msg)
 
-class server_overview(QWidget, Ui_ServerWind):
+
+class ServerOverview(QWidget, Ui_ServerWind):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowTitle("Server Overview")
+
+        self.MainServer = Server()
+
+        self.S_DataTable.setRowCount(10)
+        self.S_DataTable.setColumnCount(3)
+
+        Thread(target = self.server_listen).start()
+
+    def server_listen(self):
+        i = 0
+        while True:
+            print(i)
+            message,addr = self.MainServer.listen_silently()
+            Ip = addr[0]
+            port = str(addr[1])
+            print(port)
+            self.S_DataTable.setItem(i, 0, QTableWidgetItem(message))
+            self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
+            self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))
+            i = i+1
+
 
 
 
