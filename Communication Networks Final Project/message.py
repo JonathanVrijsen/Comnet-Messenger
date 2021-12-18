@@ -1,6 +1,5 @@
 from user import User
 import enum
-from enum_switch import Switch
 #class message as saved in the server
 class MessageType(enum.Enum):
     publickeyrequest = 1
