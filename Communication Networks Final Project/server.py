@@ -56,8 +56,8 @@ class Server:
             rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedUser.pubKey, self.privKey)
 
             #extract conversation id and content from rcvdContent
-            #string has following form: id-content, so plit at first occurence of "-"
-            (id,content)=rcvdContent.split("-",1)
+            #string has following form: id-content, so split at first occurence of "-"
+            (id, content)=rcvdContent.split("-", 1)
             id=int(id)
 
             sender = connectedUser.user
