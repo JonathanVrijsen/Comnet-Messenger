@@ -9,6 +9,8 @@ from main_window_ui import Ui_MainWindow
 from host_window_ui import Ui_Form
 from server_window_ui import Ui_ServerWind
 
+import client
+
 
 class MainMenu(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -49,12 +51,17 @@ class HostWindow(QWidget, Ui_Form):
         self.H_ContactList.clicked.connect(self.contact_clicked)
 
         self.username = None
+        # self.password = None
         self.contactList = []
+        self.host_client = client.Client()
 
     def login(self):
         self.stackedWidget.setCurrentWidget(self.page_2)
 
         self.username = self.H_usernameBox.toPlainText()
+        self.password = self.H_passwordBox.text()
+        print(self.password)
+        self.host_client.login(self.username, self.password)
         tile = "User: " + self.username
         self.setWindowTitle(tile)
 
@@ -69,7 +76,7 @@ class HostWindow(QWidget, Ui_Form):
         self.setWindowTitle("NewHost")
         self.H_ContactList.clear()
 
-    def contact_clicked(self,contact):
+    def contact_clicked(self, contact):
         contact = contact.data()
         self.H_ConvList.clear()
         print(contact)
