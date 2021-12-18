@@ -7,6 +7,6 @@ class Conversation:
         self.members = members
         self.id = id
 
-    def addMessage(self, content, sender):
+    def add_message(self, content, sender):
         message = Message(sender, content)
         self.messages.append(message)
