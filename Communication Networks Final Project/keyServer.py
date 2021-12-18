@@ -33,6 +33,7 @@ class keyServer:
         self.currentThreads.append(newThread)
 
     def handle_message(self,clientIP):
+        pass
         #step: if request for public key, send it, otherwise ignore
         #step: decode message using private key and
         #step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
