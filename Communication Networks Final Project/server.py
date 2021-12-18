@@ -53,18 +53,16 @@ class Server:
 
             self.connectionSocket.listen(16)
             rcvdContent = self.connectionSocket.recv(1024)
-
             rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedUser.pubKey, self.privKey)
 
+            #extract conversation id and content from rcvdContent
+            #string has following form: id-content, so plit at first occurence of "-"
+            (id,content)=rcvdContent.split("-",1)
+            id=int(id)
+
             sender = connectedUser.user
-
-            #extract conversation id and content
-
-            content = ""
             message = Message(sender, content)
 
-            receiverNames = []
-            id = 0
             newConversation = True
 
             #check if message id is in existing conversations
@@ -84,6 +82,10 @@ class Server:
             if newConversation:
                 #conversation does not yet exist
                 members=[sender]
+
+                receiverNames = []
+                #fetch names of receivers from key server based on conversation id
+
                 for receiverName in receiverNames:
                     members.append(User(receiverName))
 
