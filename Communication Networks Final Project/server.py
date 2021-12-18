@@ -1,5 +1,7 @@
 from user import User
 from socket import *
+import threading
+
 
 class connectedUser:
     def __int__(self, connectionSocket, user):
@@ -17,6 +19,17 @@ class Server:
 
     def listen(self):
         self.serverSocket.listen(64)
+        connectionSocket, addr = self.serverSocket.accept()
+        rcvdContent = connectionSocket.recv(1024)
+        #extract username from sender
+        username = "name"
+        #create user
+        newUser = User(username)
+        newConnectedUser = connectedUser(connectionSocket, newUser)
+        self.connectedUsers.append(newConnectedUser)
+
+    def listenToConnectedUser(self, connectedUser):
+        connectedUser.connectionSocket.listen(16)
 
 
 
