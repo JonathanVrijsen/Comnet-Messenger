@@ -4,7 +4,7 @@ from user import User
 
 class Message:
     sender = None
-    content = None #encrypted by symmetric key related to conversation
+    content = None #in main server: encrypted by symmetric key related to conversation
 
     def __init__(self, sender, content):
         self.sender=sender
