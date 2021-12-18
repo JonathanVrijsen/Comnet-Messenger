@@ -78,7 +78,6 @@ class Server:
 
                     #find all the receivers
                     members = conversation.members
-                    receivers = members.remove(sender)
 
                     newConversation = False
                     break
@@ -92,12 +91,11 @@ class Server:
                 newConversation=Conversation(members, id)
                 newConversation.add_message(message)
 
-                receivers = members.pop(0)
-
             #send message to all receivers
 
-            for receiver in receivers:
-                for connectedUser in self.connectedUsers:
-                    if receiver == connectedUser(1): #connectedUser(1) contains the user itself.
-                        #send message via socket connectedUser(0)
-                        pass
+            for receiver in members:
+                #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
+                for tempConnectedUser in self.connectedUsers:
+                    if receiver == tempConnectedUser.user and tempConnectedUser.connectionSocket != connectedUser.connectionSocket:
+                        message=asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedUser.pubKey)
+                        tempConnectedUser.connectionSocket.send(message)
