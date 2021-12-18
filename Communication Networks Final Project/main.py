@@ -1,15 +1,16 @@
-from asymmetricKeying import *
+# from asymmetricKeying import *
+import asymmetricKeying
 
-(pubKeySender, privKeySender)=asymmetricKeying.generateKeys()
-(pubKeyReceiver, privKeyReceiver)=asymmetricKeying.generateKeys()
+(pubKeySender, privKeySender) = asymmetricKeying.generateKeys()
+(pubKeyReceiver, privKeyReceiver) = asymmetricKeying.generateKeys()
 
-content=input('Enter a message pls:')
-ciphercontent=asymmetricKeying.encrypt(content.encode('ascii'), pubKeyReceiver)
+content = input('Enter a message:')
+ciphercontent = asymmetricKeying.encrypt(content.encode('ascii'), pubKeyReceiver)
 
 signature = asymmetricKeying.signSHA1(content.encode('ascii'), privKeySender)
 
-#at the other end
-plaintext=asymmetricKeying.decrypt(ciphercontent, privKeyReceiver)
+# at the other end
+plaintext = asymmetricKeying.decrypt(ciphercontent, privKeyReceiver)
 print(f'Cipher text: {ciphercontent}')
 print(f'Signature: {signature}')
 

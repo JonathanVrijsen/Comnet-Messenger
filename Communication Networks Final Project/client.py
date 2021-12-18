@@ -8,31 +8,35 @@ class Client:
     server_socket = None
     key_server_ip = None
     key_server_socket = None
+    conversations = None
 
     def __init__(self):
-        (pubKey, privKey) = generateKeys()
-
-        (server_ip,server_socket,key_server_ip,key_server_socket) = self.get_server_information(self)
-        pass
+        (self.pubKey, self.privKey) = generateKeys()
+        (self.server_ip, self.server_socket, self.key_server_ip, self.key_server_socket) = self.get_server_information()
 
     def login(self, username, password):
         # send username and password to keyserver
-        # if login successful, set current user of client
+        # if login successful, set current user of client and get conversations from server
         self.user = User(username, password)
+        self.get_conversations()
 
     def get_server_information(self):
-
         return '127.0.0.1', 12000, '127.0.0.1', 12001
 
-    def get_conversations(self, server_ip, server_socket):
+    def get_conversations(self):
         # request all the user's conversation from the server
+
         pass
-    def send_message(self):
-        pass
+
+    def send_message(self, conversation):
+        content = ""  # get content from the gui
+        conversation.add_message(content, self.user.username)
 
     def logout(self):
         # go back to begin screen
         user = None
+        conversations = None
 
         # in a way, the keys of the previous user are still saved at the client.
-        # so maybe, implement a signal to let the keyServer know that some client has logged out, and hence it should create new keys for the conversations of the client
+        # so maybe, implement a signal to let the keyServer know that some client has logged out,
+        # and hence it should create new keys for the conversations of the client
