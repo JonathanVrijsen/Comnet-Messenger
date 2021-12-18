@@ -39,10 +39,10 @@ class Server:
 
         newConnectedClient=ConnectedClient(connectionSocket, newPubKey, newUser)
 
-        newThreat = threading.Thread(target=self.connected_user_listen(), args=(newConnectedClient, None))
-        newThreat.start()
+        newThread = threading.Thread(target=self.connected_user_listen(), args=(newConnectedClient, None))
+        newThread.start()
 
-        self.connectedClients_and_threat.append((newConnectedClient, newThreat))
+        self.connectedClients_and_threat.append((newConnectedClient, newThread))
 
         #note that it's possible that multiple clients are logged in to the same user
 
