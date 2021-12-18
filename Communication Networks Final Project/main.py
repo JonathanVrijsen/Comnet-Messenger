@@ -1,22 +1,22 @@
 import asymmetricKeying
 
-(pubKeySender, privKeySender)=generateKeys()
-(pubKeyReceiver, privKeyReceiver)=generateKeys()
+(pubKeySender, privKeySender)=asymmetricKeying.generateKeys()
+(pubKeyReceiver, privKeyReceiver)=asymmetricKeying.generateKeys()
 
 content=input('Enter a message:')
-ciphercontent=encrypt(content, pubKeyReceiver)
+ciphercontent=asymmetricKeying.encrypt(content, pubKeyReceiver)
 
-signature = signSHA1(content, privKeySender)
+signature = asymmetricKeying.signSHA1(content, privKeySender)
 
 #at the other end
-plaintext=decrypt(ciphercontent, privKeyReceiver)
+plaintext=asymmetricKeying.decrypt(ciphercontent, privKeyReceiver)
 print(f'Cipher text: {ciphercontent}')
 print(f'Signature: {signature}')
 
 if plaintext:
     print(f'Plain text: {plaintext}')
 
-if verifySHA1(plaintext, signature, pubKeySender):
+if asymmetricKeying.verifySHA1(plaintext, signature, pubKeySender):
     print('Signature verified')
 else:
     print('Signature not verified')
