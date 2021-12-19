@@ -32,6 +32,7 @@ class keyServer:
         self.currentThreads = []
         self.conversationKeys = []
         self.username_password_pairs = []
+        self.data = self.load("")
 
     def listen(self):
         self.serverSocket.listen(64) #Number of allowed unnaccepted connections
@@ -71,7 +72,7 @@ class keyServer:
         elif byte_stream.message_type == byteStreamType.ByteStreamType.loginrequest:
             login = re.search(r"^[\S]{1,20}", byte_stream.content).group()
             password_loginattempt = re.search(r"[\S]{1,20}$", byte_stream.content).group()
-            if self.getPassword(login) != password_loginattempt:
+            if self.get_password(login) != password_loginattempt:
                 raise customError.CustomError(ServerErrorTypes.ServerErrorType.IncorrectPassword)
         elif byte_stream.message_type == byteStreamType.ByteStreamType.publickey:
             key = re.search(r"^[\S]{1,20}", byte_stream.content).group()
@@ -80,10 +81,10 @@ class keyServer:
     def listen_silently(self):
 
         self.serverSocket.listen(64)
-        connectionSocket, addr = self.serverSocket.accept()
-        rcvdContent = connectionSocket.recv(1024)
+        connection_socket, addr = self.serverSocket.accept()
+        rcvd_content = connection_socket.recv(1024)
 
-        return rcvdContent.decode("utf-8"), addr
+        return rcvd_content.decode("utf-8"), addr
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
@@ -91,5 +92,11 @@ class keyServer:
         self.stopSocket.send(b)
         self.stopSocket.close()
 
-    def getPassword(self, login):
+    def get_password(self, login):
+        pass
+
+    def load(self, location):
+        pass
+
+    def write(self, location):
         pass
