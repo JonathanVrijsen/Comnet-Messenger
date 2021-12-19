@@ -24,13 +24,11 @@ class ByteStream:
 
     def __init__(self, *args):
         if len(args) > 1:
-            self.constructor_info(self, args[2], args[3])
+            self.messageType, self.content, self.outStream = self.self.constructor_info(args[2], args[3])
         else:
-            self.constructor_bytestream(self, args)
+            self.messageType, self.content, self.outStream = self.constructor_bytestream(args)
 
-    def constructor_info(self, message_type, content):
-        self.content = content
-        self.messageType = message_type
+    def constructor_info(message_type, content):
 
         #enum switch-like attempt (Python lacks a proper enum switch
         if byteStreamType.ByteStreamType['messageType'] == 1:
@@ -42,10 +40,11 @@ class ByteStream:
         else:
             pass#todo add if more cases
             #todo reject ERROR when else
-        self.outStream = bytes(out_string, 'utf-8')
+        out_stream = bytes(out_string, 'utf-8')
         #todo ERROR HANDLING when failed?
+        return message_type, content, out_stream
 
-    def constructor_bytestream(self, out_stream):
-        self.outStream = out_stream
+    def constructor_bytestream(out_stream):
         out_string = out_stream.decode("utf-8")
-        self.senderIP, self.content, self.messageType = extract_from_byte_string(out_string)
+        content, message_type = extract_from_byte_string(out_string)
+        return message_type, content, out_stream
