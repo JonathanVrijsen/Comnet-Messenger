@@ -149,8 +149,8 @@ class keyServer:
                 connectionSocket.close()
 
         # step: if request for public key, send it
-        #if msg_type == ByteStreamType.publickeyrequest:
-        #    answer_bs = ByteStream(byteStreamType.ByteStreamType.)
+        if msg_type == ByteStreamType.publickeyrequest:
+            answer_bs = ByteStream(byteStreamType.ByteStreamType.publickey)
 
         # step: decode message using private key and
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
