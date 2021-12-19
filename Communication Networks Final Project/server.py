@@ -104,3 +104,17 @@ class Server:
                     if receiver == tempConnectedClient.user and tempConnectedClient != connectedClient:
                         message = asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedClient.pubKey)
                         tempConnectedClient.connectionSocket.send(message)
+
+    def listen_silently(self):
+
+        self.serverSocket.listen(64)
+        connectionSocket, addr = self.serverSocket.accept()
+        rcvdContent = connectionSocket.recv(1024)
+
+        return rcvdContent.decode("utf-8"), addr
+
+    def close(self):
+        #perhaps send close message to all connectedClients
+
+        for thread in self.currentThreads:
+            thread.join()
