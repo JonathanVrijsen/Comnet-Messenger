@@ -45,14 +45,15 @@ class Client:
         elif not password1:
             return RegisterErrorType.NoPassword
         else:
-            clientToKeySocket = socket(AF_INET, SOCK_STREAM)
-            clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
+            self.clientToKeySocket = socket(AF_INET, SOCK_STREAM)
+            self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
 
 
             reg_bs = ByteStream(ByteStreamType.registerrequest,username + " - "+password1)
-            clientToKeySocket.send(reg_bs.outStream)
-            ans_bytes = clientToKeySocket.recv(1024)
-            clientToKeySocket.close()
+            print(reg_bs.outStream)
+            self.clientToKeySocket.send(reg_bs.outStream)
+            ans_bytes = self.clientToKeySocket.recv(1024)
+            self.clientToKeySocket.close()
 
             ans_bs = ByteStream(ans_bytes)
             ans = ans_bs.content

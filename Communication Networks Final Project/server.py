@@ -54,7 +54,7 @@ class Server:
         self.connectedClients.append(newConnectedClient)
 
         #launch new thread dedicated to connectedClient
-        newThread = threading.Thread(target=self.connected_user_listen(), args=(newConnectedClient, None))
+        newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient, None))
         self.currentThreads.append(newThread)
         newThread.start()
 
