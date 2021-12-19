@@ -17,7 +17,7 @@ class keyServer:
     privKey = None
     currentThreads = None
     conversationKeys = None  # tuple of (id, symmetric key)
-
+    database = dic{"login": "password", [("id1","key1"), ("id2", "key2")]}
     def __init__(self):
         self.userArray = []
 
@@ -66,13 +66,13 @@ class keyServer:
 
     def handle_message(self,rcvdContent, connectionSocket):
         msg_bs = ByteStream(rcvdContent)
-        msgtype = msg_bs.messageType
-        msgcontent = msg_bs.content
+        msg_type = msg_bs.messageType
+        msg_content = msg_bs.content
 
 
-        if msgtype == ByteStreamType.registerrequest:
+        if msg_type == ByteStreamType.registerrequest:
             username_already_used = False
-            (username, password) = msgcontent.split(' - ', 1)
+            (username, password) = msg_content.split(' - ', 1)
             for name_pw_pair in self.username_password_pairs:
                 if name_pw_pair[0] == username:
                     username_already_used = True
@@ -87,9 +87,9 @@ class keyServer:
             connectionSocket.send(answer_bs.outStream)
             connectionSocket.close()
 
-        if msgtype == ByteStreamType.loginrequest:
+        if msg_type == ByteStreamType.loginrequest:
             user_exists = False
-            username = msgcontent
+            username = msg_content
             for name_pw_pair in self.username_password_pairs:
                 if name_pw_pair[0] == username:
                     # the user exist
@@ -105,8 +105,8 @@ class keyServer:
                 connectionSocket.send(answer_bs.outStream)
                 connectionSocket.close()  # user non existent => login abort
 
-        if msgtype == ByteStreamType.passwordanswer:
-            password = msgcontent
+        if msg_type == ByteStreamType.passwordanswer:
+            password = msg_content
             password_correct = False
             i = self.connectionSockets.index(connectionSocket)
             username = self.connectionSockets[i][1]
