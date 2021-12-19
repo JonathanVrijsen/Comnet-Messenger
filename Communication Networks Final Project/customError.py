@@ -14,6 +14,8 @@ class CustomError(Exception):
             error_string = "Login/Password wrong. A login should be 5-20 characters long, a password 8-20"
         elif self.error_type == ServerErrorTypes.ServerErrorType.IncorrectPassword:
             error_string = "Incorrect login/password combination; try again."
+        elif self.error_type == ServerErrorTypes.ServerErrorType.AccountAlreadyExists:
+            error_string = "This account already exists. Did you intend to log in?"
         else:
             error_string = "regular error"
         return "Error: " + error_string
