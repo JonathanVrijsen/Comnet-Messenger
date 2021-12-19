@@ -1,7 +1,5 @@
 import threading
 from random import getrandbits
-
-from user import User
 from socket import *
 import asymmetricKeying
 from cryptography.fernet import Fernet
@@ -28,14 +26,8 @@ class keyServer:
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
         (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
         self.currentThreads = []
-
         self.conversationKeys = []
-
         self.username_password_pairs = []
-
-
-
-
 
     def listen(self):
         self.serverSocket.listen(64) #Number of allowed unnaccepted connections
@@ -43,7 +35,6 @@ class keyServer:
         rcvdContent = connectionSocket.recv(1024)
         newThread = threading.Thread(target=self.handle_message(), args=(connectionSocket, clientIP))
         newThread.start()
-
         self.currentThreads.append(newThread)
 
     def create_conversation(self):
@@ -51,10 +42,10 @@ class keyServer:
 
         # check if id doesn't exist already
         passed = False
-        while (not passed):
+        while not passed:
             passed = True
             for i in range(len(self.conversationKeys)):
-                if (id == self.conversationKeys(i)):
+                if id == self.conversationKeys(i):
                     passed = False
                     id = getrandbits(32)
                     break
