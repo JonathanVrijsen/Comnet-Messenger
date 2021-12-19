@@ -40,10 +40,13 @@ class Client:
         print(login_bs.outStream)
         self.clientToKeySocket.send(login_bs.outStream)
         login_ans_bytes = self.clientToKeySocket.recv(1024)
+        print("login ans received")
         # self.clientToKeySocket.close()
-
+        print(login_ans_bytes)
         login_ans_bs = ByteStream(login_ans_bytes)
+        print(login_ans_bs)
         login_ans = login_ans_bs.content
+        print(login_ans)
         if login_ans == "send password":
             # send password
             # self.send_password(password)
@@ -64,7 +67,6 @@ class Client:
             self.clientToKeySocket.close()
             return RegisterErrorType.UsernameAlreadyInUse
 
-
     def register(self, username, password1, password2, password3):
 
         if password1 != password2 or password1 != password3:
@@ -77,8 +79,7 @@ class Client:
             self.clientToKeySocket = socket(AF_INET, SOCK_STREAM)
             self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
 
-
-            reg_bs = ByteStream(ByteStreamType.registerrequest,username + " - "+password1)
+            reg_bs = ByteStream(ByteStreamType.registerrequest, username + " - "+password1)
             print(reg_bs.outStream)
             self.clientToKeySocket.send(reg_bs.outStream)
             ans_bytes = self.clientToKeySocket.recv(1024)
@@ -90,7 +91,6 @@ class Client:
                 return RegisterErrorType.NoError
             else:
                 return RegisterErrorType.UsernameAlreadyInUse
-
 
     def get_server_information(self):
         return '127.0.0.1', 12100, '127.0.0.1', 12002
