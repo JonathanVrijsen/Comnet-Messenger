@@ -1,23 +1,21 @@
 import byteStreamType
-import customError
-import byteStreamErrorTypes
+from byteStreamErrorTypes import *
+from customError import *
 import re
 
 
 def constructor_info(message_type, content):
-    # enum switch-like attempt (Python lacks a proper enum switch)
+    # enum switch-like attempt (Python lacks a proper enum switch
     if message_type == byteStreamType.ByteStreamType.publickeyrequest:
         out_string = "publickeyrequest - " + content  # content = "clientIP"
     elif message_type == byteStreamType.ByteStreamType.registerrequest:
         out_string = "registerrequest - " + content  # content = "clientIP - username - password"
     elif message_type == byteStreamType.ByteStreamType.loginrequest:
         out_string = "loginrequest - " + content  # content = "clientIP - username - password"
-    elif message_type == byteStreamType.ByteStreamType.publickey:
-        out_string = "publickey - " + content
-    elif message_type == byteStreamType.ByteStreamType.symmetrickey:
-        out_string = "symmetrickey - " + content
+    elif message_type == byteStreamType.ByteStreamType.registeranswer:
+        out_string = "registeranswer - " + content # content = "succes/failed"
     else:
-        raise customError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
+        raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = bytes(out_string, 'utf-8')
     return message_type, content, out_stream
 
@@ -38,14 +36,11 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^loginrequest - [\S]{1,20} - [\S]{1,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
         content = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).group()
-    elif re.search(r"^publickey - ", out_string) is not None:
-        message_type = byteStreamType.ByteStreamType.publickey
-        content = out_string.replace("publickey - " , "")
-    elif re.search(r"^symmetrickey - ", out_string) is not None:
-        message_type = byteStreamType.ByteStreamType.symmetrickey
-        content = out_string.replace("symmetrickey - ", "")
+    elif re.search(r"^registeranswer - [\S]{1,20}$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.loginrequest
+        content = re.search(r"[\S]{1,20}$", out_string).group()
     else:
-        raise customError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
+        raise CustomError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type
 
 

@@ -105,13 +105,10 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_RegErrorTextBox.setText("Passwords don't match")
         elif regerror == RegisterErrorType.NoPassword:
             self.H_RegErrorTextBox.setText("No password has been entered")
-
-
-
-
-
-
-
+        elif regerror == RegisterErrorType.UsernameAlreadyInUse:
+            self.H_RegErrorTextBox.setText("Username already in use")
+        else:
+            self.H_RegErrorTextBox.setText("Succes!")
 
     def contact_clicked(self, contact):
         contact = contact.data()
@@ -183,17 +180,17 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
         self.listen_thread.start()
 
     def server_listen(self):
-        i = 0
         while True:
-            message,addr = self.KeyServer.listen_silently()
+            self.KeyServer.listen()
             if self.stop_thread:
                 break
-            Ip = addr[0]
-            port = str(addr[1])
-            self.S_DataTable.setItem(i, 0, QTableWidgetItem(message))
-            self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
-            self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))
-            i = i+1
+            users = self.KeyServer.getUsers()
+            self.S_DataTable.clear()
+            i = 0
+            for j in users:
+                self.S_DataTable.setItem(i, 0, QTableWidgetItem(j[0]))
+                self.S_DataTable.setItem(i, 1, QTableWidgetItem(j[1]))
+                i = i+1
 
     def closeEvent(self, event):
         self.stop_thread = True

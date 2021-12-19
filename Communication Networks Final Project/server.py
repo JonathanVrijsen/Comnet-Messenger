@@ -23,6 +23,7 @@ class Server:
 
         self.serverPort = 12000
         self.stopPort = 12001
+        self.server_ip = '127.0.0.1'
         self.serverSocket = socket(AF_INET, SOCK_STREAM)
         self.stopSocket = socket(AF_INET, SOCK_STREAM)
         self.serverSocket.bind(('127.0.0.1', self.serverPort))
@@ -144,6 +145,6 @@ class Server:
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
-        self.stopSocket.connect((self.server_ip, self.server_socket))
+        self.stopSocket.connect((self.server_ip, self.serverPort))
         self.stopSocket.send(b)
         self.stopSocket.close()

@@ -45,9 +45,21 @@ class Client:
         elif not password1:
             return RegisterErrorType.NoPassword
         else:
+            clientToKeySocket = socket(AF_INET, SOCK_STREAM)
+            clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
+
+
             reg_bs = ByteStream(ByteStreamType.registerrequest,username + " - "+password1)
-            self.clientToKeySocket.send(reg_bs.outStream)
-            return RegisterErrorType.NoError
+            clientToKeySocket.send(reg_bs.outStream)
+            ans_bytes = clientToKeySocket.recv(1024)
+            clientToKeySocket.close()
+
+            ans_bs = ByteStream(ans_bytes)
+            ans = ans_bs.content
+            if ans == "succes":
+                return RegisterErrorType.NoError
+            else:
+                return RegisterErrorType.UsernameAlreadyInUse
 
 
     def get_server_information(self):

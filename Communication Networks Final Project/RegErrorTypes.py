@@ -7,3 +7,4 @@ class RegisterErrorType(enum.Enum):
     NoUsername = 4
     NoPassword = 5
     NoPasswordMatch = 6
+    UsernameAlreadyInUse = 7
