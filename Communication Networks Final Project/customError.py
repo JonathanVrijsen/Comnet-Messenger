@@ -11,6 +11,6 @@ class CustomError(Exception):
             error_string = "The request isn't recognised by this device"
         elif self.error_type == byteStreamErrorTypes.ByteStreamErrorType.LoginOrPasswordWrong:
             error_string = "Login/Password wrong. A login should be 5-20 characters long, a password 8-20"
-        else
+        else:
             error_string = "regular error input"
         return "Error: " + error_string
