@@ -7,4 +7,9 @@ class ByteStreamType(enum.Enum):
     loginanswer = 5
     passwordrequest = 6
     passwordanswer = 7
+    contactrequest = 8
+    contactanswer = 9
+    keyrequest = 10
+    pubkeyanswer = 11
+    symkeyanswer = 12
     # TODO add

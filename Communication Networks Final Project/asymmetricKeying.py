@@ -29,7 +29,6 @@ def verifySHA1(content, signature, key):
 
 def rsa_sendable(msg, privKeySender, pubKeyReceiver): #used by all the piers that need to send any content
     #assuming message is a string
-    msg = msg.encode('ascii')
 
     cipher_msg = encrypt(msg, pubKeyReceiver)
     signature = signSHA1(msg, privKeySender)
@@ -46,5 +45,11 @@ def rsa_receive(cipher_msg, pubKeySender, privKeyReceiver):
         return msg
     else:
         return False
+
+def string_to_pubkey(pubkeystr):
+    f, l = pubkeystr.split('(')
+    n, e = l.split(',')
+    e = e[1:len(e) - 1]
+    return rsa.PublicKey(int(n), int(e))
 
 

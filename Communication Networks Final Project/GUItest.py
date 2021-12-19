@@ -66,6 +66,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_ContactList.clicked.connect(self.contact_clicked)
         self.H_sendButton.clicked.connect(self.send_msg)
         self.H_RegButton.clicked.connect(self.register)
+        self.H_NewConvButton.clicked.connect(self.refresh_contacts)
 
         self.username = None
         # self.password = None
@@ -128,6 +129,9 @@ class ClientWindow(QWidget, Ui_Form):
     def send_msg(self):
         msg = self.H_MessageBox.text()
         self.client.send_message(msg)
+
+    def refresh_contacts(self):
+        self.client.refresh_contacts()
 
 
 class ServerOverview(QWidget, Ui_ServerWind):
