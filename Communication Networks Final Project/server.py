@@ -37,7 +37,10 @@ class Server:
         self.stopSocket = socket(AF_INET, SOCK_STREAM)
         self.serverSocket.bind(('127.0.0.1', self.serverPort))
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
+
         (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
+        fkey = open("serverCommonKey.txt",'rb')
+        self.serverCommonKey = fkey.read()
 
         self.i = 0
 
