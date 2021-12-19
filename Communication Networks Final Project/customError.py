@@ -16,6 +16,8 @@ class CustomError(Exception):
             error_string = "Incorrect login/password combination; try again."
         elif self.error_type == ServerErrorTypes.ServerErrorType.AccountAlreadyExists:
             error_string = "This account already exists. Did you intend to log in?"
+        elif self.error_type == ServerErrorTypes.ServerErrorType.AccountDoesntExist:
+            error_string = "This account doesn't exist."
         else:
             error_string = "regular error"
         return "Error: " + error_string
