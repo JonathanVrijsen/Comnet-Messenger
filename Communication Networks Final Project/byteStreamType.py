@@ -4,4 +4,5 @@ class ByteStreamType(enum.Enum):
     registerrequest = 2
     loginrequest = 3
     publickey = 4
+    symmetrickey = 5
     #TODO add
