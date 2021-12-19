@@ -59,7 +59,7 @@ class keyServer:
         byte_stream = byteStream(rcvd_content)
         # step: if request for public key, send it, otherwise ignore
         if byte_stream.message_type == byteStreamType.ByteStreamType.publickeyrequest:
-            pass #TODO STRING TO DATA
+            pass #TODO SEND PUBLIC KEY
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
         # if allright, create public and private key and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.registerrequest:
@@ -67,7 +67,8 @@ class keyServer:
             password = re.search(r"[\S]{1,20}$", rcvd_content).group()
         # step: if login request, check combo and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.loginrequest:
-            pass #TODO STRING TO DATA
+            login = re.search(r"^[\S]{1,20}", rcvd_content).group()
+            password = re.search(r"[\S]{1,20}$", rcvd_content).group()
         # step: if conversation request, create keys, connect to two accounts, send to asker
 
     def listen_silently(self):
