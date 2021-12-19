@@ -1,5 +1,6 @@
 import re
 import threading
+from math import floor
 from random import getrandbits
 from socket import *
 import asymmetricKeying
@@ -17,7 +18,6 @@ class keyServer:
     privKey = None
     currentThreads = None
     conversationKeys = None  # tuple of (id, symmetric key)
-    database = dic{"login": "password", [("id1","key1"), ("id2", "key2")]}
     def __init__(self):
         self.userArray = []
 
@@ -38,6 +38,7 @@ class keyServer:
         self.connectedClients = []
         self.connectionSockets = []  # some sockets need to remain active for a while
         self.username_password_pairs = []  # already registered users
+        self.database = {"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
     def listen(self):
         print("keyserver listening")
@@ -155,10 +156,19 @@ class keyServer:
         self.stopSocket.close()
 
     def get_password(self, login):
+        return self.find_in_sorted_list(login)[0]
         pass
 
     def load(self, location):
         pass
 
     def write(self, location):
+        pass
+
+    def find_in_sorted_list(self, login):
+        bottom_index = 0
+        top_index = len(self.database) - 1
+        while True:
+            middle_index = floor( (bottom_index+top_index) / 2)
+            if middle<
         pass
