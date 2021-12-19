@@ -18,6 +18,7 @@ class keyServer:
     privKey = None
     currentThreads = None
     conversationKeys = None  # tuple of (id, symmetric key)
+
     def __init__(self):
         self.userArray = []
 
@@ -25,11 +26,12 @@ class keyServer:
         self.stopPort = 12003
         self.server_ip = '127.0.0.1'
 
-        self.serverSocket = socket(AF_INET, SOCK_STREAM)  # AF_INET = Address Family, Internet Protocol (v4) -> ipv4 addresses will connect to this socket.
+        self.serverSocket = socket(AF_INET,
+                                   SOCK_STREAM)  # AF_INET = Address Family, Internet Protocol (v4) -> ipv4 addresses will connect to this socket.
 
         # SOCK_STREAM connection oriented -> two-way byte streams
         self.stopSocket = socket(AF_INET, SOCK_STREAM)
-        self.serverSocket.bind(('127.0.0.1',self.serverPort))  # '' contains addresses, when empty it means all
+        self.serverSocket.bind(('127.0.0.1', self.serverPort))  # '' contains addresses, when empty it means all
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
 
         (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
@@ -42,8 +44,8 @@ class keyServer:
 
     def listen(self):
         print("keyserver listening")
-        self.serverSocket.listen(64) #Number of allowed unnaccepted connections
-        connectionSocket, addr = self.serverSocket.accept() #return values: socket for client, and clientIP
+        self.serverSocket.listen(64)  # Number of allowed unnaccepted connections
+        connectionSocket, addr = self.serverSocket.accept()  # return values: socket for client, and clientIP
         rcvdContent = connectionSocket.recv(1024)
 
         newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
@@ -65,25 +67,31 @@ class keyServer:
         newSymKey = Fernet.generate_key()
         self.conversationKeys.append(id, newSymKey)
 
-    def handle_message(self,rcvdContent, connectionSocket):
+    def handle_message(self, rcvdContent, connectionSocket):
         msg_bs = ByteStream(rcvdContent)
         msg_type = msg_bs.messageType
         msg_content = msg_bs.content
 
-
         if msg_type == ByteStreamType.registerrequest:
-            username_already_used = False
             (username, password) = msg_content.split(' - ', 1)
-            for name_pw_pair in self.username_password_pairs:
-                if name_pw_pair[0] == username:
-                    username_already_used = True
-                    print("balls")
-
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
-
-            if (not username_already_used):
-                self.username_password_pairs.append((username,password))
+            if self.check_existense_of_account(username):
+                raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
+            else:
+                self.add_user(username,password)
                 answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
+
+#            username_already_used = False
+#            (username, password) = msg_content.split(' - ', 1)
+            #for name_pw_pair in self.username_password_pairs:
+            #    if name_pw_pair[0] == username:
+            #        username_already_used = True
+            #        print("balls")
+
+                    #answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
+
+#            if (not username_already_used):
+#                self.username_password_pairs.append((username, password))
+#                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
 
             connectionSocket.send(answer_bs.outStream)
             connectionSocket.close()
@@ -127,16 +135,11 @@ class keyServer:
                 self.connectionSockets.remove(connectionSocket)
                 connectionSocket.close()
 
-
-
-
-
-
-        #step: if request for public key, send it, otherwise ignore
-        #step: decode message using private key and
-        #step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
-        #if allright, create public and private key and send to receiver over temporary secure channel
-        #step: if login request, check combo and send to receiver over temporary secure channel
+        # step: if request for public key, send it, otherwise ignore
+        # step: decode message using private key and
+        # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
+        # if allright, create public and private key and send to receiver over temporary secure channel
+        # step: if login request, check combo and send to receiver over temporary secure channel
 
     def getUsers(self):
         return self.username_password_pairs
@@ -159,16 +162,26 @@ class keyServer:
         return self.find_in_sorted_list(login)[0]
         pass
 
+    def add_user(self, login, password):
+        self.database[login] = [password, []]
+
+    def add_key(self, login, id, key):
+        self.database[login][1].append((id, key))
+
     def load(self, location):
         pass
 
     def write(self, location):
         pass
 
+    def check_existense_of_account(self, login):
+        return login in self.database
+
     def find_in_sorted_list(self, login):
-        bottom_index = 0
-        top_index = len(self.database) - 1
-        while True:
-            middle_index = floor( (bottom_index+top_index) / 2)
-            if middle<
-        pass
+        return self.database[login]
+#        bottom_index = 0
+#        top_index = len(self.database) - 1
+#        while True:
+#            middle_index = floor( (bottom_index+top_index) / 2)
+#            if middle_index
+#        pass
