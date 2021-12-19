@@ -5,13 +5,15 @@ import re
 
 
 def constructor_info(message_type, content):
-    # enum switch-like attempt (Python lacks a proper enum switch
+    # enum switch-like attempt (Python lacks a proper enum switch)
     if message_type == byteStreamType.ByteStreamType.publickeyrequest:
         out_string = "publickeyrequest - " + content  # content = "clientIP"
     elif message_type == byteStreamType.ByteStreamType.registerrequest:
         out_string = "registerrequest - " + content  # content = "clientIP - username - password"
     elif message_type == byteStreamType.ByteStreamType.loginrequest:
         out_string = "loginrequest - " + content  # content = "clientIP - username - password"
+    elif message_type == byteStreamType.ByteStreamType.publickey:
+        out_string = "publickey - " + content
     else:
         raise customError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = bytes(out_string, 'utf-8')
