@@ -90,10 +90,10 @@ class keyServer:
     def listen_silently(self):
 
         self.serverSocket.listen(64)
-        connectionSocket, addr = self.serverSocket.accept()
-        rcvdContent = connectionSocket.recv(1024)
+        connection_socket, addr = self.serverSocket.accept()
+        rcvd_content = connection_socket.recv(1024)
 
-        return rcvdContent.decode("utf-8"), addr
+        return rcvd_content.decode("utf-8"), addr
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
@@ -101,5 +101,11 @@ class keyServer:
         self.stopSocket.send(b)
         self.stopSocket.close()
 
-    def getPassword(self, login):
+    def get_password(self, login):
+        pass
+
+    def load(self, location):
+        pass
+
+    def write(self, location):
         pass
