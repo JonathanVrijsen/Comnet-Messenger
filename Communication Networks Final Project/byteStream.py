@@ -27,7 +27,7 @@ class ByteStream:
         else:
             self.messageType, self.content, self.outStream = self.constructor_bytestream(args)
 
-    def constructor_info(message_type, content):
+    def constructor_info(self, message_type, content):
 
         #enum switch-like attempt (Python lacks a proper enum switch
         if message_type == byteStreamType.ByteStreamType.publickeyrequest:
