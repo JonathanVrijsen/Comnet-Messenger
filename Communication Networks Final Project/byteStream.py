@@ -22,8 +22,9 @@ class ByteStream:
 #    messageType = None
 #    outStream = None
 
+    def __init__(self, ):
 
-    def __init__(self, message_type, content, public_key_sender):
+    def constructor_info(self, message_type, content):
         self.content = content
         self.messageType = message_type
 
@@ -40,7 +41,7 @@ class ByteStream:
         self.outStream = bytes(out_string, 'utf-8')
         #todo ERROR HANDLING when failed?
 
-    def __init__(self, out_stream, private_key_receiver):
+    def constructor_bytestream(self, out_stream):
         self.outStream = out_stream
         out_string = out_stream.decode("utf-8")
         self.senderIP, self.content, self.messageType = extract_from_byte_string(out_string)
