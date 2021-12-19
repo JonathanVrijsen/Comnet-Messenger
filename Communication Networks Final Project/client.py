@@ -1,3 +1,4 @@
+import asymmetricKeying
 from asymmetricKeying import generateKeys
 from user import User
 from socket import *
@@ -20,6 +21,7 @@ class Client:
     def __init__(self):
         self.own_ip = "127.0.0.1"
         (self.pubKey, self.privKey) = generateKeys()
+
         (self.server_ip, self.server_socket, self.key_server_ip, self.key_server_socket) = self.get_server_information()
 
         self.clientToMainSocket = socket(AF_INET, SOCK_STREAM)
@@ -64,6 +66,8 @@ class Client:
         #wait until server repplies with symmetric key for connection
         self.clientToMainSocket.listen(1)
         rcvd = self.clientToMainSocket.recv(1024)
+        rcvd = asymmetricKeying.rsa_receive(rcvd)
+
         byteStreamIn = ByteStream(rcvd)
         if (byteStreamIn.messageType == ByteStreamType.symmetrickey):
             self.mainSymKey = byteStreamIn.content
