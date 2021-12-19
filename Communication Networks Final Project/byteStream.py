@@ -21,11 +21,13 @@ class ByteStream:
 #    content = None  # in main server: encrypted by symmetric key related to conversation
 #    messageType = None
 #    outStream = None
+    def __init__(self, *args):
+        if len(args) > 1:
+            self.messageType, self.content, self.outStream = self.self.constructor_info(args[2], args[3])
+        else:
+            self.messageType, self.content, self.outStream = self.constructor_bytestream(args)
 
-
-    def __init__(self, message_type, content):
-        self.content = content
-        self.messageType = message_type
+    def constructor_info(message_type, content):
 
         #enum switch-like attempt (Python lacks a proper enum switch
         if message_type == byteStreamType.ByteStreamType.publickeyrequest:
@@ -37,10 +39,12 @@ class ByteStream:
         else:
             pass#todo add if more cases
             #todo reject ERROR when else
-        self.outStream = bytes(out_string, 'utf-8')
-        #todo ERROR HANDLING when failed?
+        out_stream = bytes(out_string, 'utf-8')
+        # todo ERROR HANDLING when failed?
+        return message_type, content, out_stream
 
-    #def __init__(self, out_stream, private_key_receiver):
-        #self.outStream = out_stream
-        #out_string = out_stream.decode("utf-8")
-        #self.senderIP, self.content, self.messageType = extract_from_byte_string(out_string)
+
+def constructor_bytestream(out_stream):
+    out_string = out_stream.decode("utf-8")
+    content, message_type = extract_from_byte_string(out_string)
+    return message_type, content, out_stream
