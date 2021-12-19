@@ -1,5 +1,6 @@
 import byteStreamErrorTypes
 
+
 class CustomError(Exception):
     def __init__(self, error_type):
         self.error_type = error_type
