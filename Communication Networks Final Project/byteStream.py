@@ -32,12 +32,12 @@ def extract_from_byte_string(out_string):
     if re.search(r"^publickeyrequest$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.publickeyrequest
         content = None
-    elif re.search(r"^registerrequest - [\S]{5,20} - [\S]{8,20}$", out_string) is not None:
+    elif re.search(r"^registerrequest - [\S]{1,20} - [\S]{1,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registerrequest
-        content = re.search(r"[\S]{5,20} - [\S]{8,20}$", out_string).group()
-    elif re.search(r"^loginrequest - [\S]{5,20} - [\S]{8,20}$", out_string) is not None:
+        content = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).group()
+    elif re.search(r"^loginrequest - [\S]{1,20} - [\S]{1,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
-        content = re.search(r"[\S]{5,20} - [\S]{8,20}$", out_string).group()
+        content = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).group()
     elif re.search(r"^publickey - ", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.publickey
         content = out_string.replace("publickey - " , "")

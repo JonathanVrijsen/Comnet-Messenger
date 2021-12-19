@@ -1,3 +1,4 @@
+import re
 import threading
 from random import getrandbits
 from socket import *
@@ -62,7 +63,8 @@ class keyServer:
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
         # if allright, create public and private key and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.registerrequest:
-            pass #TODO STRING TO DATA
+            login = re.search(r"^[\S]{1,20}", rcvd_content).group()
+            password = re.search(r"[\S]{1,20}$", rcvd_content).group()
         # step: if login request, check combo and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.loginrequest:
             pass #TODO STRING TO DATA
