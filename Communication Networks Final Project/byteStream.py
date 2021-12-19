@@ -14,6 +14,8 @@ def constructor_info(message_type, content):
         out_string = "loginrequest - " + content  # content = "clientIP - username - password"
     elif message_type == byteStreamType.ByteStreamType.publickey:
         out_string = "publickey - " + content
+    elif message_type == byteStreamType.ByteStreamType.symmetrickey:
+        out_string = "symmetrickey - " + content
     else:
         raise customError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = bytes(out_string, 'utf-8')
@@ -36,6 +38,9 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^loginrequest - [\S]{5,20} - [\S]{8,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
         content = re.search(r"[\S]{5,20} - [\S]{8,20}$").group()
+
+    #to be added: publickey and symmetrickey
+
     else:
         raise customError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type
