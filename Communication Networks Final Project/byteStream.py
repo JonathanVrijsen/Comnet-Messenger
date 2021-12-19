@@ -3,22 +3,19 @@ import asymmetricKeying
 import re
 
 
-def extract_from_string(out_string):
-    if re.search(r"^publickeyrequest - [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$", out_string) is not None:
+def extract_from_byte_string(out_string):
+    if re.search(r"^publickeyrequest$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.publickeyrequest
-        sender_ip = re.search(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", out_string).group()
         content = None
-    elif re.search(r"^registerrequest - [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} - [\S]{5,20} - [\S]{8,20}$",out_string) is not None:
+    elif re.search(r"^registerrequest - [\S]{5,20} - [\S]{8,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registerrequest
-        sender_ip = re.search(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", out_string).group()
         content = re.search(r"[\S]{5,20} - [\S]{8,20}$").group()
-    elif re.search(r"^loginrequest - [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} - [\S]{5,20} - [\S]{8,20}$",out_string) is not None:
+    elif re.search(r"^loginrequest - [\S]{5,20} - [\S]{8,20}$",out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
-        sender_ip = re.search(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", out_string).group()
         content = re.search(r"[\S]{5,20} - [\S]{8,20}$").group()
     else:
         pass #todo error handling
-    return sender_ip, content, message_type
+    return content, message_type
 
 class ByteStream:
 #    sender = None
@@ -49,6 +46,6 @@ class ByteStream:
         self.outStream = out_stream
         outstring = asymmetricKeying.decrypt(out_stream, private_key_receiver)
         if outstring:
-            self.senderIP, self.content, self.messageType = extract_from_string(outstring)
+            self.senderIP, self.content, self.messageType = extract_from_byte_string(outstring)
         else:
             pass #todo ERROR HANDLING

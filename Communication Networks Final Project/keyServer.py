@@ -11,6 +11,7 @@ class keyServer:
     userArray = None
     serverPort = None
     serverSocket = None
+    stopSocket = None
     pubKey = None
     privKey = None
     currentThreads = None
