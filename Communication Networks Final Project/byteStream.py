@@ -23,7 +23,7 @@ class ByteStream:
 #    outStream = None
     def __init__(self, *args):
         if len(args) > 1:
-            self.messageType, self.content, self.outStream = self.self.constructor_info(args[2], args[3])
+            self.messageType, self.content, self.outStream = self.self.constructor_info(args[0], args[1])
         else:
             self.messageType, self.content, self.outStream = self.constructor_bytestream(args)
 
