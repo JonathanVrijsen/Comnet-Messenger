@@ -63,13 +63,15 @@ class keyServer:
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
         # if allright, create public and private key and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.registerrequest:
-            login = re.search(r"^[\S]{1,20}", rcvd_content).group()
-            password = re.search(r"[\S]{1,20}$", rcvd_content).group()
+            login = re.search(r"^[\S]{1,20}", byte_stream.content).group()
+            password = re.search(r"[\S]{1,20}$", byte_stream.content).group()
         # step: if login request, check combo and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.loginrequest:
-            login = re.search(r"^[\S]{1,20}", rcvd_content).group()
-            password = re.search(r"[\S]{1,20}$", rcvd_content).group()
-        # step: if conversation request, create keys, connect to two accounts, send to asker
+            login = re.search(r"^[\S]{1,20}", byte_stream.content).group()
+            password = re.search(r"[\S]{1,20}$", byte_stream.content).group()
+        elif byte_stream.message_type == byteStreamType.ByteStreamType.publickey:
+            key = re.search(r"^[\S]{1,20}", byte_stream.content).group()
+        #todo step: if conversation request, create keys, connect to two accounts, send to asker
 
     def listen_silently(self):
 
