@@ -40,7 +40,7 @@ class keyServer:
     def listen(self):
         self.serverSocket.listen(64) #Number of allowed unnaccepted connections
         connectionSocket, clientIP = self.serverSocket.accept() #return values: socket for client, and clientIP
-
+        rcvdContent = connectionSocket.recv(1024)
         newThread = threading.Thread(target=self.handle_message(), args=(connectionSocket, clientIP))
         newThread.start()
 
