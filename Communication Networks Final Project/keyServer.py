@@ -74,7 +74,7 @@ class keyServer:
 
         if msg_type == ByteStreamType.registerrequest:
             (username, password) = msg_content.split(' - ', 1)
-            if self.check_existense_of_account(username):
+            if self.check_existence_of_account(username):
                 raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
                 answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
             else:
@@ -99,7 +99,7 @@ class keyServer:
 
         if msg_type == ByteStreamType.loginrequest:
             username = msg_content
-            if not self.check_existense_of_account(username):
+            if not self.check_existence_of_account(username):
                 answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
                 connectionSocket.send(answer_bs.outStream)
                 connectionSocket.close()  # user non existent => login abort
@@ -148,7 +148,10 @@ class keyServer:
                 self.connectionSockets.remove(connectionSocket)
                 connectionSocket.close()
 
-        # step: if request for public key, send it, otherwise ignore
+        # step: if request for public key, send it
+        if msg_type == ByteStreamType.publickeyrequest:
+            answer_bs = ByteStream(byteStreamType.ByteStreamType.)
+
         # step: decode message using private key and
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
         # if allright, create public and private key and send to receiver over temporary secure channel
@@ -187,7 +190,7 @@ class keyServer:
     def write(self, location):
         pass
 
-    def check_existense_of_account(self, login):
+    def check_existence_of_account(self, login):
         return login in self.database
 
     def find_in_sorted_list(self, login):
