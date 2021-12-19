@@ -77,7 +77,6 @@ class ClientWindow(QWidget, Ui_Form):
 
         self.username = self.H_usernameBox.toPlainText()
         self.password = self.H_passwordBox.text()
-        print(self.password)
         self.client.login(self.username, self.password)
         tile = "User: " + self.username
         self.setWindowTitle(tile)
@@ -117,7 +116,6 @@ class ClientWindow(QWidget, Ui_Form):
     def contact_clicked(self, contact):
         contact = contact.data()
         self.H_ConvList.clear()
-        print(contact)
 
         if contact == "Louis": #voorbeeld hoe gesprek uit te beelden
             msg1 = "hey"
@@ -153,13 +151,11 @@ class ServerOverview(QWidget, Ui_ServerWind):
     def server_listen(self):
         i = 0
         while True:
-            print(i)
             message,addr = self.MainServer.listen_silently()
             if self.stop_thread:
                 break
             Ip = addr[0]
             port = str(addr[1])
-            print(port)
             self.S_DataTable.setItem(i, 0, QTableWidgetItem(message))
             self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
             self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))
@@ -189,13 +185,11 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
     def server_listen(self):
         i = 0
         while True:
-            print(i)
             message,addr = self.KeyServer.listen_silently()
             if self.stop_thread:
                 break
             Ip = addr[0]
             port = str(addr[1])
-            print(port)
             self.S_DataTable.setItem(i, 0, QTableWidgetItem(message))
             self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
             self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))

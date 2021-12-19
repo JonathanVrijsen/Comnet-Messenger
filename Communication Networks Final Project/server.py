@@ -29,6 +29,8 @@ class Server:
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
         (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
 
+        self.i = 0
+
     def listen(self):
         self.serverSocket.listen(64)
         connectionSocket, addr = self.serverSocket.accept()
@@ -116,11 +118,23 @@ class Server:
 
     def listen_silently(self):
 
-        self.serverSocket.listen(64)
-        connectionSocket, addr = self.serverSocket.accept()
-        rcvdContent = connectionSocket.recv(1024)
+        if self.i == 0:
+            print("listening...")
+            self.serverSocket.listen(64)
+            self.connectionSocket, addr = self.serverSocket.accept()
+            rcvdContent = self.connectionSocket.recv(1024)
+            print("recieved!")
+            print(rcvdContent.decode("utf-8"))
+            self.i = self.i+1
+            return rcvdContent.decode("utf-8"), addr
 
-        return rcvdContent.decode("utf-8"), addr
+        else:
+            print("waf")
+            self.serverSocket.listen(64)
+            rcvdContent = self.connectionSocket.recv(1024)
+            print(rcvdContent.decode("utf-8"))
+            return rcvdContent.decode("utf-8"), (0,0)
+
 
     def close(self):
         #perhaps send close message to all connectedClients

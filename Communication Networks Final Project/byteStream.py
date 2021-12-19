@@ -41,7 +41,9 @@ class ByteStream:
 #    messageType = None
 #    outStream = None
     def __init__(self, *args):
-        if len(args) > 2:
-            self.messageType, self.content, self.outStream = constructor_info(args[0], args[1], args[2])
+        print(len(args))
+        print("bloop")
+        if len(args) >= 2:
+            self.messageType, self.content, self.outStream = constructor_info(args[0], args[1])
         else:
             self.messageType, self.content, self.outStream = constructor_bytestream(args[0],args[1])
