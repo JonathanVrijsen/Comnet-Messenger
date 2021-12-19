@@ -40,11 +40,10 @@ class ByteStream:
             pass#todo add if more cases
             #todo reject ERROR when else
         out_stream = bytes(out_string, 'utf-8')
-        # todo ERROR HANDLING when failed?
+        #todo ERROR HANDLING when failed?
         return message_type, content, out_stream
 
-
-def constructor_bytestream(out_stream):
-    out_string = out_stream.decode("utf-8")
-    content, message_type = extract_from_byte_string(out_string)
-    return message_type, content, out_stream
+    def constructor_bytestream(out_stream):
+        out_string = out_stream.decode("utf-8")
+        content, message_type = extract_from_byte_string(out_string)
+        return message_type, content, out_stream
