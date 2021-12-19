@@ -23,24 +23,24 @@ class ByteStream:
 #    outStream = None
 
 
-    def __init__(self, sender_ip, message_type, content, public_key_sender):
+    def __init__(self, message_type, content):
         self.content = content
         self.messageType = message_type
 
         #enum switch-like attempt (Python lacks a proper enum switch
-        if byteStreamType.ByteStreamType['messageType'] == 1:
+        if message_type == byteStreamType.ByteStreamType.publickeyrequest:
             out_string = "publickeyrequest - " + content #content = "clientIP"
-        elif byteStreamType.ByteStreamType['messageType'] == 2:
+        elif message_type == byteStreamType.ByteStreamType.registerrequest:
             out_string = "registerrequest - " + content #content = "clientIP - username - password"
-        elif byteStreamType.ByteStreamType['messageType'] == 3:
+        elif message_type == byteStreamType.ByteStreamType.loginrequest:
             out_string = "loginrequest - " + content #content = "clientIP - username - password"
         else:
             pass#todo add if more cases
             #todo reject ERROR when else
-        self.outStream = out_string.encode("ascii")
+        self.outStream = bytes(out_string, 'utf-8')
         #todo ERROR HANDLING when failed?
 
-    def __init__(self, out_stream, private_key_receiver):
-        self.outStream = out_stream
-        out_string = out_stream.decode("utf-8")
-        self.senderIP, self.content, self.messageType = extract_from_byte_string(outstring)
+    #def __init__(self, out_stream, private_key_receiver):
+        #self.outStream = out_stream
+        #out_string = out_stream.decode("utf-8")
+        #self.senderIP, self.content, self.messageType = extract_from_byte_string(out_string)

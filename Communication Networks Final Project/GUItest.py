@@ -11,7 +11,8 @@ from server_window_ui import Ui_ServerWind
 
 from threading import *
 
-from client import Client
+from client import *
+from RegErrorTypes import *
 from server import *
 from keyServer import *
 
@@ -64,6 +65,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_LogoutButton.clicked.connect(self.logout)
         self.H_ContactList.clicked.connect(self.contact_clicked)
         self.H_sendButton.clicked.connect(self.send_msg)
+        self.H_RegButton.clicked.connect(self.register)
 
         self.username = None
         # self.password = None
@@ -90,6 +92,27 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_passwordBox.clear()
         self.setWindowTitle("NewClient")
         self.H_ContactList.clear()
+
+    def register(self):
+        self.username = self.H_RegUsernameBox.text()
+        self.password1 = self.H_RegpasswordBox1.text()
+        self.password2 = self.H_RegpasswordBox2.text()
+        self.password3 = self.H_RegpasswordBox3.text()
+
+        regerror = self.client.register(self.username,self.password1,self.password2,self.password3)
+        if regerror == RegisterErrorType.NoUsername:
+            self.H_RegErrorTextBox.setText("No username has been entered")
+        elif regerror == RegisterErrorType.NoPasswordMatch:
+            self.H_RegErrorTextBox.setText("Passwords don't match")
+        elif regerror == RegisterErrorType.NoPassword:
+            self.H_RegErrorTextBox.setText("No password has been entered")
+
+
+
+
+
+
+
 
     def contact_clicked(self, contact):
         contact = contact.data()

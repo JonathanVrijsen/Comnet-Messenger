@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/Clientwindow.ui'
+# Form implementation generated from reading ui file 'Clientwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(584, 574)
+        Form.resize(584, 530)
         self.gridLayout = QtWidgets.QGridLayout(Form)
         self.gridLayout.setObjectName("gridLayout")
         self.stackedWidget = QtWidgets.QStackedWidget(Form)
@@ -108,6 +108,22 @@ class Ui_Form(object):
         self.H_RegButton = QtWidgets.QPushButton(self.page)
         self.H_RegButton.setObjectName("H_RegButton")
         self.verticalLayout.addWidget(self.H_RegButton)
+        self.H_RegErrorTextBox = QtWidgets.QLabel(self.page)
+        palette = QtGui.QPalette()
+        brush = QtGui.QBrush(QtGui.QColor(255, 0, 0))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 0, 0))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(120, 120, 120))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
+        self.H_RegErrorTextBox.setPalette(palette)
+        self.H_RegErrorTextBox.setText("")
+        self.H_RegErrorTextBox.setAlignment(QtCore.Qt.AlignCenter)
+        self.H_RegErrorTextBox.setObjectName("H_RegErrorTextBox")
+        self.verticalLayout.addWidget(self.H_RegErrorTextBox)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem1)
         self.gridLayout_2.addLayout(self.verticalLayout, 0, 0, 1, 1)
