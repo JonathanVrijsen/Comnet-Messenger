@@ -34,13 +34,16 @@ def extract_from_byte_string(out_string):
         content = None
     elif re.search(r"^registerrequest - [\S]{5,20} - [\S]{8,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registerrequest
-        content = re.search(r"[\S]{5,20} - [\S]{8,20}$").group()
+        content = re.search(r"[\S]{5,20} - [\S]{8,20}$", out_string).group()
     elif re.search(r"^loginrequest - [\S]{5,20} - [\S]{8,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
-        content = re.search(r"[\S]{5,20} - [\S]{8,20}$").group()
-
-    #to be added: publickey and symmetrickey
-
+        content = re.search(r"[\S]{5,20} - [\S]{8,20}$", out_string).group()
+    elif re.search(r"^publickey - ", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.publickey
+        content = out_string.replace("publickey - " , "")
+    elif re.search(r"^symmetrickey - ", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.symmetrickey
+        content = out_string.replace("symmetrickey - ", "")
     else:
         raise customError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type
