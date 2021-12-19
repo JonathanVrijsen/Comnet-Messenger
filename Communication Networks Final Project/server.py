@@ -94,7 +94,6 @@ class Server:
                     connectedClient.set_user(newUser)
                     self.knownUsers.add(newUser) #doesn't add if already in set
 
-
             #TODO add message to bytestreamtypes
             elif byteStreamIn.messageType == ByteStreamType.message:
                 #extract conversation id and content from rcvdContent
