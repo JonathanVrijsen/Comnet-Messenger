@@ -3,6 +3,8 @@ from random import getrandbits
 from socket import *
 import asymmetricKeying
 from cryptography.fernet import Fernet
+import byteStream
+import byteStreamType
 
 
 class keyServer:
@@ -32,7 +34,7 @@ class keyServer:
         self.serverSocket.listen(64) #Number of allowed unnaccepted connections
         connectionSocket, clientIP = self.serverSocket.accept() #return values: socket for client, and clientIP
         rcvdContent = connectionSocket.recv(1024)
-        newThread = threading.Thread(target=self.handle_message(), args=(connectionSocket, clientIP))
+        newThread = threading.Thread(target=self.handle_message(), args=(connectionSocket, rcvdContent))
         newThread.start()
         self.currentThreads.append(newThread)
 
@@ -51,13 +53,21 @@ class keyServer:
         newSymKey = Fernet.generate_key()
         self.conversationKeys.append(id, newSymKey)
 
-    def handle_message(self,clientIP):
+    def handle_message(self, rcvd_content):
         pass
-        #step: if request for public key, send it, otherwise ignore
-        #step: decode message using private key and
-        #step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
-        #if allright, create public and private key and send to receiver over temporary secure channel
-        #step: if login request, check combo and send to receiver over temporary secure channel
+        byte_stream = byteStream(rcvd_content)
+        # step: if request for public key, send it, otherwise ignore
+        if byte_stream.message_type == byteStreamType.ByteStreamType.publickeyrequest:
+            pass #TODO STRING TO DATA
+        # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
+        # if allright, create public and private key and send to receiver over temporary secure channel
+        elif byte_stream.message_type == byteStreamType.ByteStreamType.registerrequest:
+            pass #TODO STRING TO DATA
+        # step: if login request, check combo and send to receiver over temporary secure channel
+        elif byte_stream.message_type == byteStreamType.ByteStreamType.loginrequest:
+            pass #TODO STRING TO DATA
+        # step: if conversation request, create keys, connect to two accounts, send to asker
+
     def listen_silently(self):
 
         self.serverSocket.listen(64)
