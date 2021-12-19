@@ -22,8 +22,11 @@ class Server:
         self.currentThreads = []
 
         self.serverPort = 12000
+        self.stopPort = 12001
         self.serverSocket = socket(AF_INET, SOCK_STREAM)
-        self.serverSocket.bind(('', self.serverPort))
+        self.stopSocket = socket(AF_INET, SOCK_STREAM)
+        self.serverSocket.bind(('127.0.0.1', self.serverPort))
+        self.stopSocket.bind(('127.0.0.1', self.stopPort))
         (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
 
     def listen(self):
@@ -124,3 +127,9 @@ class Server:
 
         for thread in self.currentThreads:
             thread.join()
+
+    def stop_listening(self):
+        b = bytes('1', 'utf-8')
+        self.stopSocket.connect((self.server_ip, self.server_socket))
+        self.stopSocket.send(b)
+        self.stopSocket.close()

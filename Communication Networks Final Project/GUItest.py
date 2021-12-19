@@ -117,13 +117,17 @@ class ServerOverview(QWidget, Ui_ServerWind):
         self.S_DataTable.setRowCount(10)
         self.S_DataTable.setColumnCount(3)
 
-        Thread(target = self.server_listen).start()
+        self.stop_thread = False
+        self.listen_thread = Thread(target = self.server_listen)
+        self.listen_thread.start()
 
     def server_listen(self):
         i = 0
         while True:
             print(i)
             message,addr = self.MainServer.listen_silently()
+            if self.stop_thread:
+                break
             Ip = addr[0]
             port = str(addr[1])
             print(port)
@@ -131,6 +135,11 @@ class ServerOverview(QWidget, Ui_ServerWind):
             self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
             self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))
             i = i+1
+
+    def closeEvent(self, event):
+        self.stop_thread = True
+        self.MainServer.stop_listening()
+        self.listen_thread.join()
 
 
 
