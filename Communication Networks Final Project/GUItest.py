@@ -186,7 +186,7 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
                 break
             users = self.KeyServer.getUsers()
             self.S_DataTable.clear()
-            i=1
+            i=0
             for j in users:
                 self.S_DataTable.setItem(i, 0, QTableWidgetItem(j[0]))
                 self.S_DataTable.setItem(i, 1, QTableWidgetItem(j[1]))

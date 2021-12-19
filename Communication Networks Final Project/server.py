@@ -21,8 +21,8 @@ class Server:
         self.connectedClients = []
         self.currentThreads = []
 
-        self.serverPort = 12000
-        self.stopPort = 12001
+        self.serverPort = 12100
+        self.stopPort = 12101
         self.server_ip = '127.0.0.1'
         self.serverSocket = socket(AF_INET, SOCK_STREAM)
         self.stopSocket = socket(AF_INET, SOCK_STREAM)

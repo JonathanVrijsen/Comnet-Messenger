@@ -64,7 +64,7 @@ class Client:
 
 
     def get_server_information(self):
-        return '127.0.0.1', 12000, '127.0.0.1', 12002
+        return '127.0.0.1', 12100, '127.0.0.1', 12002
 
     def get_conversations(self):
         # request all the user's conversation from the server
