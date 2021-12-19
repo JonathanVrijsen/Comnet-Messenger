@@ -158,7 +158,7 @@ class keyServer:
         # step: if login request, check combo and send to receiver over temporary secure channel
 
     def getUsers(self):
-        return self.username_password_pairs
+        return self.database
 
     def listen_silently(self):
 

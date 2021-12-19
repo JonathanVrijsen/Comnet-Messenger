@@ -188,8 +188,8 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
             self.S_DataTable.clear()
             i=0
             for j in users:
-                self.S_DataTable.setItem(i, 0, QTableWidgetItem(j[0]))
-                self.S_DataTable.setItem(i, 1, QTableWidgetItem(j[1]))
+                self.S_DataTable.setItem(i, 0, QTableWidgetItem(j))
+                self.S_DataTable.setItem(i, 1, QTableWidgetItem(users[j]))
                 i=i+1
 
     def closeEvent(self, event):
