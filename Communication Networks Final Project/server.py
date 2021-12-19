@@ -1,5 +1,7 @@
 from cryptography.fernet import Fernet
 
+from byteStream import ByteStream
+from byteStreamType import ByteStreamType
 from user import User
 from socket import *
 from conversation import Conversation
@@ -8,11 +10,16 @@ import threading
 import asymmetricKeying
 
 class ConnectedClient:
-    def __init__(self, connectionSocket, symKey, user):
+    user = None
+
+    def __init__(self, connectionSocket, symKey, pubKey):
         self.connectionSocket = connectionSocket
-        self.user = user
+        self.pubKey = pubKey
         self.symKey = symKey
-        self.loggedIn = True
+        self.active = True
+
+    def set_user(self, newUser):
+        self.user = newUser
 
 
 class Server:
@@ -20,6 +27,8 @@ class Server:
         self.conversations = []
         self.connectedClients = []
         self.currentThreads = []
+
+        self.knownUsers = {} #empty set (basically list with unique elements)
 
         self.serverPort = 12100
         self.stopPort = 12101
@@ -37,20 +46,25 @@ class Server:
         connectionSocket, addr = self.serverSocket.accept()
         rcvdContent = connectionSocket.recv(1024)
 
-        #check if incoming client wants to make a new connection.If this is the case,it hands the server its name and public key
+        #check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
+        #TODO add clientpublickey to bytestreamtypes
+        byteStreamIn = ByteStream(rcvdContent)
+        if (byteStreamIn.messageType == ByteStreamType.clientpublickey):
+            clientPubKey = byteStreamIn.content
 
-        #extract public key of sender
-        clientPubKey = 0
+        #send own public key to client
+        #TODO add publickey to bystreamtypes
+        byteStreamOut = ByteStream(ByteStreamType.publickey, self.pubKey)
+        connectionSocket.send(byteStreamOut.outStream) #send own public key
+
         #encrypt symmetric key and send to client
         newSymKey = Fernet.generate_key()
         msg = asymmetricKeying.rsa_sendable(newSymKey, self.privKey, clientPubKey)
-        connectionSocket.send(msg)
+        #TODO add symmetrickey to bytestreamtypes
+        byteStreamOut = ByteStream(ByteStreamType.symmetrickey, msg)
+        connectionSocket.send(byteStreamOut.outStream)
 
-        #extract username of sender
-        username = "name"
-        # create new connected user
-        newUser = User(username)
-        newConnectedClient = ConnectedClient(connectionSocket, newSymKey, newUser)
+        newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
         self.connectedClients.append(newConnectedClient)
 
         #launch new thread dedicated to connectedClient
@@ -61,61 +75,74 @@ class Server:
         #note that it's possible that multiple clients are logged in to the same user
 
     def connected_user_listen(self, connectedClient):
-        while(connectedClient.loggedIn):
-
+        while(connectedClient.active):
             connectionSocket = connectedClient.connectionSocket
 
             self.connectionSocket.listen(16)
             rcvdContent = self.connectionSocket.recv(1024)
-            rcvdContent = asymmetricKeying.rsa_receive(rcvdContent, connectedClient.pubKey, self.privKey)
+            byteStreamIn = ByteStream(rcvdContent)
 
-            #extract conversation id and content from rcvdContent
-            #string has following form: id-content, so split at first occurence of "-"
-            (id, content)=rcvdContent.split("-", 1)
+            #TODO add login to bytestreamtypes
+            if byteStreamIn.messageType == ByteStreamType.login:
+                content = byteStreamIn.content
+                (username, sign) = content.split(" - ", 1)
 
-            id=int(id)
+                #use common key between keyserver and server to check if key(sign) == username
 
-            sender = connectedClient.user
-            message = Message(sender, content)
+                if True:
+                    newUser = User(username)
+                    connectedClient.set_user(newUser)
+                    self.knownUsers.add(newUser) #doesn't add if already in set
 
-            newConversation = True
+            #TODO add message to bytestreamtypes
+            elif byteStreamIn.messageType == ByteStreamType.message:
+                #extract conversation id and content from rcvdContent
+                #string has following form: id-content, so split at first occurence of "-"
+                (id, content)=rcvdContent.split("-", 1)
 
-            #check if message id is in existing conversations
-            for conversation in self.conversations:
-                if id == conversation.id:
-                    #conversation already exists
+                id=int(id)
 
-                    #save message in conversation
-                    conversation.add_message(message)
+                sender = connectedClient.user
+                message = Message(sender, content)
 
-                    #find all the receivers
-                    members = conversation.members
+                newConversation = True
 
-                    newConversation = False
-                    break
+                #check if message id is in existing conversations
+                for conversation in self.conversations:
+                    if id == conversation.id:
+                        #conversation already exists
 
-            if newConversation:
-                #conversation does not yet exist
-                members = [sender]
+                        #save message in conversation
+                        conversation.add_message(message)
 
-                receiverNames = []
-                #fetch names of receivers from key server based on conversation id
+                        #find all the receivers
+                        members = conversation.members
+
+                        newConversation = False
+                        break
+
+                if newConversation:
+                    #conversation does not yet exist
+                    members = [sender]
+
+                    receiverNames = []
+                    #fetch names of receivers from key server based on conversation id
 
 
-                for receiverName in receiverNames:
-                    members.append(User(receiverName))
+                    for receiverName in receiverNames:
+                        members.append(User(receiverName))
 
-                newConversation = Conversation(members, id)
-                newConversation.add_message(message)
+                    newConversation = Conversation(members, id)
+                    newConversation.add_message(message)
 
-            #send message to all receivers
+                #send message to all receivers
 
-            for receiver in members:
-                #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
-                for tempConnectedClient in self.connectedClients:
-                    if receiver == tempConnectedClient.user and tempConnectedClient != connectedClient:
-                        message = asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedClient.pubKey)
-                        tempConnectedClient.connectionSocket.send(message)
+                for receiver in members:
+                    #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
+                    for tempConnectedClient in self.connectedClients:
+                        if receiver == tempConnectedClient.user and tempConnectedClient != connectedClient:
+                            message = asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedClient.pubKey)
+                            tempConnectedClient.connectionSocket.send(message)
 
     def listen_silently(self):
 
