@@ -1,4 +1,3 @@
-# from asymmetricKeying import *
 import asymmetricKeying
 
 (pubKeySender, privKeySender) = asymmetricKeying.generateKeys()

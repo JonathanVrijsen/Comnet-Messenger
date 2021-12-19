@@ -4,7 +4,6 @@ from socket import *
 from RegErrorTypes import *
 from byteStream import *
 from byteStreamType import *
-import enum
 
 
 class Client:

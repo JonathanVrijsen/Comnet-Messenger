@@ -1,7 +1,26 @@
 import byteStreamType
-import asymmetricKeying
+import byteStreamErrorTypes
 import re
 
+def constructor_info(message_type, content):
+    # enum switch-like attempt (Python lacks a proper enum switch
+    if message_type == byteStreamType.ByteStreamType.publickeyrequest:
+        out_string = "publickeyrequest - " + content  # content = "clientIP"
+    elif message_type == byteStreamType.ByteStreamType.registerrequest:
+        out_string = "registerrequest - " + content  # content = "clientIP - username - password"
+    elif message_type == byteStreamType.ByteStreamType.loginrequest:
+        out_string = "loginrequest - " + content  # content = "clientIP - username - password"
+    else:
+        pass  # todo add if more cases
+        # todo reject ERROR when else
+    out_stream = bytes(out_string, 'utf-8')
+    # todo ERROR HANDLING when failed?
+    return message_type, content, out_stream
+
+def constructor_bytestream(out_stream):
+    out_string = out_stream.decode("utf-8")
+    content, message_type = extract_from_byte_string(out_string)
+    return message_type, content, out_stream
 
 def extract_from_byte_string(out_string):
     if re.search(r"^publickeyrequest$", out_string) is not None:
@@ -22,28 +41,7 @@ class ByteStream:
 #    messageType = None
 #    outStream = None
     def __init__(self, *args):
-        if len(args) > 1:
-            self.messageType, self.content, self.outStream = self.constructor_info(args[0], args[1])
+        if len(args) > 2:
+            self.messageType, self.content, self.outStream = constructor_info(args[0], args[1], args[2])
         else:
-            self.messageType, self.content, self.outStream = self.constructor_bytestream(args)
-
-    def constructor_info(message_type, content):
-
-        #enum switch-like attempt (Python lacks a proper enum switch
-        if message_type == byteStreamType.ByteStreamType.publickeyrequest:
-            out_string = "publickeyrequest - " + content #content = "clientIP"
-        elif message_type == byteStreamType.ByteStreamType.registerrequest:
-            out_string = "registerrequest - " + content #content = "clientIP - username - password"
-        elif message_type == byteStreamType.ByteStreamType.loginrequest:
-            out_string = "loginrequest - " + content #content = "clientIP - username - password"
-        else:
-            pass#todo add if more cases
-            #todo reject ERROR when else
-        out_stream = bytes(out_string, 'utf-8')
-        #todo ERROR HANDLING when failed?
-        return message_type, content, out_stream
-
-    def constructor_bytestream(out_stream):
-        out_string = out_stream.decode("utf-8")
-        content, message_type = extract_from_byte_string(out_string)
-        return message_type, content, out_stream
+            self.messageType, self.content, self.outStream = constructor_bytestream(args[0],args[1])
