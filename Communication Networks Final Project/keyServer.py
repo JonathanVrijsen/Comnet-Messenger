@@ -16,7 +16,8 @@ class keyServer:
     pubKey = None
     privKey = None
     currentThreads = None
-    conversationKeys = None #tuple of (id, symmetric key)
+    conversationKeys = None  # tuple of (id, symmetric key)
+
     def __init__(self):
         self.userArray = []
 
@@ -24,19 +25,19 @@ class keyServer:
         self.stopPort = 12003
         self.server_ip = '127.0.0.1'
 
-        self.serverSocket = socket(AF_INET, SOCK_STREAM) #AF_INET = Address Family, Internet Protocol (v4) -> ipv4 addresses will connect to this socket.
+        self.serverSocket = socket(AF_INET, SOCK_STREAM)  # AF_INET = Address Family, Internet Protocol (v4) -> ipv4 addresses will connect to this socket.
 
-        #SOCK_STREAM connection oriented -> two-way byte streams
+        # SOCK_STREAM connection oriented -> two-way byte streams
         self.stopSocket = socket(AF_INET, SOCK_STREAM)
-        self.serverSocket.bind(('127.0.0.1',self.serverPort)) #'' contains addresses, when empty it means all
+        self.serverSocket.bind(('127.0.0.1',self.serverPort))  # '' contains addresses, when empty it means all
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
 
         (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
 
         self.currentThreads = []
         self.connectedClients = []
-        self.connectionSockets = [] #some sockets need to remain active for a while
-        self.username_password_pairs = [] #already registered users
+        self.connectionSockets = []  # some sockets need to remain active for a while
+        self.username_password_pairs = []  # already registered users
 
     def listen(self):
         print("keyserver listening")
@@ -71,7 +72,7 @@ class keyServer:
 
         if msgtype == ByteStreamType.registerrequest:
             username_already_used = False
-            (username,password) = msgcontent.split(' - ',1)
+            (username, password) = msgcontent.split(' - ', 1)
             for name_pw_pair in self.username_password_pairs:
                 if name_pw_pair[0] == username:
                     username_already_used = True
@@ -85,6 +86,50 @@ class keyServer:
 
             connectionSocket.send(answer_bs.outStream)
             connectionSocket.close()
+
+        if msgtype == ByteStreamType.loginrequest:
+            user_exists = False
+            username = msgcontent
+            for name_pw_pair in self.username_password_pairs:
+                if name_pw_pair[0] == username:
+                    # the user exist
+                    user_exists = True
+
+            if user_exists:
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "send password")
+                connectionSocket.send(answer_bs.outStream)
+                # connectionSocket not closed to receive password
+                self.connectionSockets.append((connectionSocket, username))
+            else:
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
+                connectionSocket.send(answer_bs.outStream)
+                connectionSocket.close()  # user non existent => login abort
+
+        if msgtype == ByteStreamType.passwordanswer:
+            password = msgcontent
+            password_correct = False
+            i = self.connectionSockets.index(connectionSocket)
+            username = self.connectionSockets[i][1]
+            for name_pw_pair in self.username_password_pairs:
+                if name_pw_pair == (username, password):
+                    password_correct = True
+            if password_correct:
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordanswer, "password correct")
+                connectionSocket.send(answer_bs.outStream)
+                # Close and remove connectionSocket
+                self.connectionSockets.remove(connectionSocket)
+                connectionSocket.close()
+            else:
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordanswer, "password wrong")
+                connectionSocket.send(answer_bs.outStream)
+                # Close and remove connectionSocket
+                self.connectionSockets.remove(connectionSocket)
+                connectionSocket.close()
+
+
+
+
+
 
         #step: if request for public key, send it, otherwise ignore
         #step: decode message using private key and

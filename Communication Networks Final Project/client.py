@@ -33,8 +33,37 @@ class Client:
     def login(self, username, password):
         # send username and password to keyserver
         # if login successful, set current user of client and get conversations from server
-        self.user = User(username, password)
-        self.get_conversations()
+        self.clientToKeySocket = socket(AF_INET, SOCK_STREAM)
+        self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
+
+        login_bs = ByteStream(ByteStreamType.loginrequest, username)
+        print(login_bs.outStream)
+        self.clientToKeySocket.send(login_bs.outStream)
+        login_ans_bytes = self.clientToKeySocket.recv(1024)
+        # self.clientToKeySocket.close()
+
+        login_ans_bs = ByteStream(login_ans_bytes)
+        login_ans = login_ans_bs.content
+        if login_ans == "send password":
+            # send password
+            # self.send_password(password)
+            password_bs = ByteStream(ByteStreamType.passwordanswer, password)
+            self.clientToKeySocket.send(password_bs.outStream)
+            password_ans_bytes = self.clientToKeySocket.recv(1024)
+            password_ans_bs = ByteStream(password_ans_bytes)
+            password_ans = password_ans_bs.content
+            if password_ans == "correct password":
+                self.user = User(username, password)
+                self.get_conversations()
+                self.clientToKeySocket.close()
+                return RegisterErrorType.NoError
+            else:
+                self.clientToKeySocket.close()
+                return RegisterErrorType.UsernameAlreadyInUse
+        else:
+            self.clientToKeySocket.close()
+            return RegisterErrorType.UsernameAlreadyInUse
+
 
     def register(self, username, password1, password2, password3):
 

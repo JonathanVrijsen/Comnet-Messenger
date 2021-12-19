@@ -4,4 +4,7 @@ class ByteStreamType(enum.Enum):
     registerrequest = 2
     loginrequest = 3
     registeranswer = 4
-    #TODO add
+    loginanswer = 5
+    passwordrequest = 6
+    passwordanswer = 7
+    # TODO add

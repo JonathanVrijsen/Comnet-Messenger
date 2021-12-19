@@ -39,6 +39,15 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^registeranswer - [\S]{1,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registeranswer
         content = re.search(r"[\S]{1,20}$", out_string).group()
+    elif re.search(r"^loginanswer - [\S]{1,20}$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.loginanswer
+        content = re.search(r"[\S]{1,20}$", out_string).group()
+    elif re.search(r"^passwordrequest - [\S]{1,20}$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.passwordrequest
+        content = re.search(r"[\S]{1,20}$", out_string).group()
+    elif re.search(r"^passwordanswer - [\S]{1,20}$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.passwordanswer
+        content = re.search(r"[\S]{1,20}$", out_string).group()
     else:
         raise CustomError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type
