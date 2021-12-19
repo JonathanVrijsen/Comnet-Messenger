@@ -6,6 +6,8 @@ import asymmetricKeying
 from cryptography.fernet import Fernet
 import byteStream
 import byteStreamType
+import customError
+import ServerErrorTypes
 
 
 class keyServer:
@@ -68,7 +70,9 @@ class keyServer:
         # step: if login request, check combo and send to receiver over temporary secure channel
         elif byte_stream.message_type == byteStreamType.ByteStreamType.loginrequest:
             login = re.search(r"^[\S]{1,20}", byte_stream.content).group()
-            password = re.search(r"[\S]{1,20}$", byte_stream.content).group()
+            password_loginattempt = re.search(r"[\S]{1,20}$", byte_stream.content).group()
+            if self.getPassword(login) != password_loginattempt:
+                raise customError.CustomError(ServerErrorTypes.ServerErrorType.IncorrectPassword)
         elif byte_stream.message_type == byteStreamType.ByteStreamType.publickey:
             key = re.search(r"^[\S]{1,20}", byte_stream.content).group()
         #todo step: if conversation request, create keys, connect to two accounts, send to asker
@@ -86,3 +90,6 @@ class keyServer:
         self.stopSocket.connect((self.server_ip, self.server_socket))
         self.stopSocket.send(b)
         self.stopSocket.close()
+
+    def getPassword(self, login):
+        pass
