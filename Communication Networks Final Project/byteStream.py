@@ -14,6 +14,17 @@ def constructor_info(message_type, content):
         out_string = "loginrequest - " + content  # content = "clientIP - username - password"
     elif message_type == byteStreamType.ByteStreamType.registeranswer:
         out_string = "registeranswer - " + content # content = "succes/failed"
+    elif message_type == byteStreamType.ByteStreamType.contactrequest:
+        out_string = "contactrequest" # content = \
+    elif message_type == byteStreamType.ByteStreamType.contactanswer:
+        out_string = "contactanswer - " + content # content = list of usernames
+    elif message_type == byteStreamType.ByteStreamType.keyrequest:
+        out_string = "keyrequest - " + str(content)  # content = public key of sender
+    elif message_type == byteStreamType.ByteStreamType.pubkeyanswer:
+        out_string = "pubkeyanswer - " + str(content)  # content = public key of sender
+    elif message_type == byteStreamType.ByteStreamType.symkeyanswer:
+        out_string = "symkeyanswer - " + str(content)  # content = sym key of sender
+
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = bytes(out_string, 'utf-8')
@@ -52,6 +63,24 @@ def extract_from_byte_string(out_string):
         (start, end) = re.search(r"^passwordanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.passwordanswer
         content = out_string[end:-1]
+    elif re.search(r"^contactrequest$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.contactrequest
+        content = ""
+    elif re.search(r"^contactanswer - $", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.contactanswer
+        content = ""
+    elif re.search(r"^keyrequest - ", out_string) is not None:
+        (start, end) = re.search(r"^keyrequest - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.keyrequest
+        content = out_string[end:-1]
+    elif re.search(r"^pubkeyanswer - ", out_string) is not None:
+        (start, end) = re.search(r"^pubkeyanswer - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.pubkeyanswer
+        content = out_string[end:-1]
+    elif re.search(r"^symkeyanswer - ", out_string) is not None:
+        (start, end) = re.search(r"^symkeyanswer - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.symkeyanswer
+        content = out_string[end:-1]
     else:
         raise CustomError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type
@@ -62,8 +91,6 @@ class ByteStream:
     #    messageType = None
     #    outStream = None
     def __init__(self, *args):
-        print(len(args))
-        print("bloop")
         if len(args) >= 2:
             self.messageType, self.content, self.outStream = constructor_info(args[0], args[1])
         else:
