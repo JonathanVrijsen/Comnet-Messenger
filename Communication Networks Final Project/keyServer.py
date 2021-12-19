@@ -47,10 +47,10 @@ class keyServer:
         self.serverSocket.listen(64)  # Number of allowed unnaccepted connections
         connectionSocket, addr = self.serverSocket.accept()  # return values: socket for client, and clientIP
         rcvdContent = connectionSocket.recv(1024)
-
-        newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
-        newThread.start()
-        self.currentThreads.append(newThread)
+        if rcvdContent != b"":
+            newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
+            newThread.start()
+            self.currentThreads.append(newThread)
 
     def create_conversation(self):
         id = getrandbits(32)
@@ -149,8 +149,8 @@ class keyServer:
                 connectionSocket.close()
 
         # step: if request for public key, send it
-        if msg_type == ByteStreamType.publickeyrequest:
-            answer_bs = ByteStream(byteStreamType.ByteStreamType.)
+        #if msg_type == ByteStreamType.publickeyrequest:
+        #    answer_bs = ByteStream(byteStreamType.ByteStreamType.)
 
         # step: decode message using private key and
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
