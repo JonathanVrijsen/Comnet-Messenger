@@ -87,7 +87,7 @@ class Server:
                 content = byteStreamIn.content
                 (username, sign) = content.split(" - ", 1)
 
-                #use common key between keyserver and server to check if key(sign)=username
+                #use common key between keyserver and server to check if key(sign) == username
 
                 if True:
                     newUser = User(username)
