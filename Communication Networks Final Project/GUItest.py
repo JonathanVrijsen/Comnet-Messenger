@@ -13,6 +13,7 @@ from threading import *
 
 from client import Client
 from server import *
+from keyServer import *
 
 
 class MainMenu(QMainWindow, Ui_MainWindow):
@@ -21,11 +22,12 @@ class MainMenu(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.M_ClientCreateButton.clicked.connect(self.create_client_window)
         self.M_ServerOverviewButton.clicked.connect(self.create_server_overview)
+        self.M_CreateKeyServerButton.clicked.connect(self.create_keyserver_overview)
 
         self.client_windows = []
         self.newClientWindow = None
         self.server_overview = None
-
+        self.keyserver_overview =None
 
     def create_client_window(self):
         self.newClientWindow = ClientWindow()
@@ -35,6 +37,10 @@ class MainMenu(QMainWindow, Ui_MainWindow):
     def create_server_overview(self):
         self.server_overview = ServerOverview()
         self.server_overview.show()
+
+    def create_keyserver_overview(self):
+        self.keyserver_overview = KeyServerOverview()
+        self.keyserver_overview.show()
 
     def closeEvent(self, event):
         app = QApplication.instance()
@@ -142,7 +148,40 @@ class ServerOverview(QWidget, Ui_ServerWind):
         self.listen_thread.join()
 
 
+class KeyServerOverview(QWidget, Ui_ServerWind):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.setWindowTitle("Keyserver Overview")
 
+        self.KeyServer = keyServer()
+
+        self.S_DataTable.setRowCount(10)
+        self.S_DataTable.setColumnCount(3)
+
+        self.stop_thread = False
+        self.listen_thread = Thread(target=self.server_listen)
+        self.listen_thread.start()
+
+    def server_listen(self):
+        i = 0
+        while True:
+            print(i)
+            message,addr = self.KeyServer.listen_silently()
+            if self.stop_thread:
+                break
+            Ip = addr[0]
+            port = str(addr[1])
+            print(port)
+            self.S_DataTable.setItem(i, 0, QTableWidgetItem(message))
+            self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
+            self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))
+            i = i+1
+
+    def closeEvent(self, event):
+        self.stop_thread = True
+        self.KeyServer.stop_listening()
+        self.listen_thread.join()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
