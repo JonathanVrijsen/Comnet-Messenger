@@ -1,3 +1,5 @@
+from cryptography.fernet import Fernet
+
 from user import User
 from socket import *
 from conversation import Conversation
@@ -6,10 +8,10 @@ import threading
 import asymmetricKeying
 
 class ConnectedClient:
-    def __init__(self, connectionSocket, pubKey, user):
+    def __init__(self, connectionSocket, symKey, user):
         self.connectionSocket = connectionSocket
         self.user = user
-        self.pubKey = pubKey
+        self.symKey = symKey
         self.loggedIn = True
 
 
@@ -29,22 +31,26 @@ class Server:
         connectionSocket, addr = self.serverSocket.accept()
         rcvdContent = connectionSocket.recv(1024)
 
+        #check if incoming client wants to make a new connection.If this is the case,it hands the server its name and public key
+
+        #extract public key of sender
+        clientPubKey = 0
+        #encrypt symmetric key and send to client
+        newSymKey = Fernet.generate_key()
+        msg = asymmetricKeying.rsa_sendable(newSymKey, self.privKey, clientPubKey)
+        connectionSocket.send(msg)
+
         #extract username of sender
         username = "name"
-
-        #create new connected user
+        # create new connected user
         newUser = User(username)
+        newConnectedClient = ConnectedClient(connectionSocket, newSymKey, newUser)
+        self.connectedClients.append(newConnectedClient)
 
-        #somehow get public key of sender
-        newPubKey = 0
-
-        newConnectedClient=ConnectedClient(connectionSocket, newPubKey, newUser)
-
+        #launch new thread dedicated to connectedClient
         newThread = threading.Thread(target=self.connected_user_listen(), args=(newConnectedClient, None))
         self.currentThreads.append(newThread)
         newThread.start()
-
-        self.connectedClients.append(newConnectedClient)
 
         #note that it's possible that multiple clients are logged in to the same user
 
