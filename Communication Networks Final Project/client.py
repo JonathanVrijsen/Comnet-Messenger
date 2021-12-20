@@ -209,7 +209,7 @@ class Client:
                 ans = []
                 for mes in conv.messages:
 
-                    ans.append(mes.sender + ": " + mes.content)
+                    ans.append(mes.sender.username + ": " + mes.content)
                 return ans
         print("fuck")
 

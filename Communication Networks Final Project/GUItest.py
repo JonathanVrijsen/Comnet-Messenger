@@ -108,6 +108,7 @@ class ClientWindow(QWidget, Ui_Form):
             if len(possible_senders) > 0:
                 messages = self.client.get_messages(possible_senders)
                 print("messages received at gui")
+                self.H_ConvList.clear()
                 for message in messages:
                     self.H_ConvList.addItem(QListWidgetItem(message))
 
