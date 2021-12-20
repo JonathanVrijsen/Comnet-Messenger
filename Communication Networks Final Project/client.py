@@ -83,7 +83,9 @@ class Client:
             password_ans_bs = ByteStream(msg)
             ans_type = password_ans_bs.messageType
             if ans_type == ByteStreamType.passwordcorrect:
+                self.encrypted_username = password_ans_bs.content
                 print("password correct")
+                print("encrypted name:", self.encrypted_username)
                 self.user = User(username, password)
 
                 byteStreamOut = ByteStream(ByteStreamType.loginrequest, username + " - " + self.encrypted_username)

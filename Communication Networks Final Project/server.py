@@ -117,6 +117,7 @@ class Server:
                 sign = sign[2:len(sign)-1]
                 decrypted_username = symmetricKeying.symmDecrypt(sign.encode('ascii'), self.serverCommonKey)
                 if username.encode('ascii') == decrypted_username:
+                    print("NOUS SOMMES ENTRES")
                     newUser = User(username)
                     connectedClient.set_user(newUser)
 
