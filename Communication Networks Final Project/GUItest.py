@@ -169,8 +169,11 @@ class ClientWindow(QWidget, Ui_Form):
         self.stackedWidget_2.setCurrentWidget((self.CC_standard))
 
     def get_conversations(self):
-        self.client.get_conversations()
-        #TODO implement with client
+        self.H_ContactList.clear()
+        convnames = self.client.get_conversations()
+
+        for name in convnames:
+            self.H_ContactList.addItem(QListWidgetItem(name))
 
     #def refresh_contacts(self):
         #self.contactList = self.client.request_contacts()
