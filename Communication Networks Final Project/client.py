@@ -113,6 +113,12 @@ class Client:
                     self.encrypted_username = ans
                     print("Received encrypted username:", str(ans))
 
+                    out = username + " - "+str(ans)
+                    byteStreamOut = ByteStream(ByteStreamType.registertomain, out)
+                    out = byteStreamOut.outStream
+                    out = symmetricKeying.symmEncrypt(out, self.Mainserver_symkey)
+                    self.clientToMainSocket.send(out)
+
                     return RegisterErrorType.NoError
                 else:
                     return RegisterErrorType.UsernameAlreadyInUse

@@ -95,10 +95,16 @@ class Server:
 
             if byteStreamIn.messageType == ByteStreamType.registertomain:
                 (username, sign) = rcvdContent.split(" - ", 1)
+                print("MAIN SERVER: REGISTER TO MAIN")
+                print(username)
+                print(sign)
+                sign = sign[2:len(sign)-1]
+                print(sign)
 
-                decrypted_username = symmetricKeying.symmDecrypt(sign, self.serverCommonKey)
 
-                if username == decrypted_username:
+                decrypted_username = symmetricKeying.symmDecrypt(sign.encode('ascii'), self.serverCommonKey)
+
+                if username.encode('ascii') == decrypted_username:
                     print("USER RGISTERED AT MAIN SERVER:", username)
                     newUser = User(username)
                     connectedClient.set_user(newUser)
