@@ -84,9 +84,10 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^contactrequest$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.contactrequest
         content = ""
-    elif re.search(r"^contactanswer - $", out_string) is not None:
+    elif re.search(r"^contactanswer - ", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.contactanswer
-        content = ""
+        (start, end) = re.search(r"^contactanswer - ", out_string).span()
+        content = out_string[end:]
     elif re.search(r"^keyrequest - ", out_string) is not None:
         (start, end) = re.search(r"^keyrequest - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.keyrequest
