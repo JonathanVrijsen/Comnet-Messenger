@@ -81,12 +81,19 @@ class Client:
             msg = symmetricKeying.symmDecrypt(msg, self.Keyserver_symkey)
             print(msg)
             password_ans_bs = ByteStream(msg)
-            ans_type=password_ans_bs.messageType
+            ans_type = password_ans_bs.messageType
             if ans_type == ByteStreamType.passwordcorrect:
                 print("password correct")
+                self.user = User(username, password)
+
+                byteStreamOut = ByteStream(ByteStreamType.loginrequest, username + " - " + self.encrypted_username)
+                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+                self.clientToMainSocket.send(out)
+
+
+
                 listen_thread = threading.Thread(target = self.listen_to_mainserver)
                 listen_thread.start()
-                self.user = User(username,password)
                 self.currentThreads.append(listen_thread)
                 return True
             elif ans_type == ByteStreamType.passwordwrong:

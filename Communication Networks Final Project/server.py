@@ -109,8 +109,16 @@ class Server:
                 if username.encode('ascii') == decrypted_username:
                     print("USER RGISTERED AT MAIN SERVER:", username)
                     newUser = User(username)
-                    connectedClient.set_user(newUser)
                     self.knownUsers.add(newUser) #doesn't add if already in set
+
+            elif byteStreamIn.messageType == ByteStreamType.loginrequest:
+                (username, sign) = rcvdContent.split(" - ", 1)
+                print("MAIN SERVER: LOGIN OF:", username)
+                sign = sign[2:len(sign)-1]
+                decrypted_username = symmetricKeying.symmDecrypt(sign.encode('ascii'), self.serverCommonKey)
+                if username.encode('ascii') == decrypted_username:
+                    newUser = User(username)
+                    connectedClient.set_user(newUser)
 
             elif byteStreamIn.messageType == ByteStreamType.contactrequest:
                 print("CONTACT REQUEST AT MAIN SERVER")
@@ -169,7 +177,8 @@ class Server:
                     #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
                     for tempConnectedClient in self.connectedClients:
                         print(tempConnectedClient.user.username)
-                        if receiver == tempConnectedClient.user.username and tempConnectedClient != connectedClient:
+
+                        if tempConnectedClient.user.username != None and receiver == tempConnectedClient.user.username and tempConnectedClient != connectedClient:
                             out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, tempConnectedClient.symKey)
                             print('MS sends message')
                             tempConnectedClient.connectionSocket.send(out)
