@@ -66,7 +66,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_ContactList.clicked.connect(self.contact_clicked)
         self.H_sendButton.clicked.connect(self.send_msg)
         self.H_RegButton.clicked.connect(self.register)
-        self.H_NewConvButton.clicked.connect(self.refresh_contacts)
+        self.H_Refresh_Contacts.clicked.connect(self.refresh_contacts)
 
         self.username = None
         # self.password = None
@@ -83,11 +83,6 @@ class ClientWindow(QWidget, Ui_Form):
             self.stackedWidget.setCurrentWidget(self.page_2)
             tile = "User: " + self.username
             self.setWindowTitle(tile)
-
-            self.contactList = ["Jonathan", "Louis", "Sam"]
-            for i in self.contactList:
-                contact = QListWidgetItem(i)
-                self.H_ContactList.addItem(contact)
 
     def logout(self):
         self.stackedWidget.setCurrentWidget(self.page)
@@ -133,7 +128,12 @@ class ClientWindow(QWidget, Ui_Form):
         self.client.send_message(msg)
 
     def refresh_contacts(self):
-        self.client.refresh_contacts()
+        self.contactList = self.client.request_contacts()
+
+        for contact in self.contactList:
+            self.H_ContactList.addItem(QListWidgetItem(contact))
+
+
 
 
 class ServerOverview(QWidget, Ui_ServerWind):

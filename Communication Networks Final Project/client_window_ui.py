@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Clientwindow.ui'
+# Form implementation generated from reading ui file 'clientwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -150,9 +150,9 @@ class Ui_Form(object):
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.H_NewConvButton = QtWidgets.QPushButton(self.page_2)
-        self.H_NewConvButton.setObjectName("H_NewConvButton")
-        self.verticalLayout_3.addWidget(self.H_NewConvButton)
+        self.H_Refresh_Contacts = QtWidgets.QPushButton(self.page_2)
+        self.H_Refresh_Contacts.setObjectName("H_Refresh_Contacts")
+        self.verticalLayout_3.addWidget(self.H_Refresh_Contacts)
         self.H_ContactList = QtWidgets.QListWidget(self.page_2)
         self.H_ContactList.setObjectName("H_ContactList")
         self.verticalLayout_3.addWidget(self.H_ContactList)
@@ -179,7 +179,7 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.stackedWidget, 1, 0, 1, 1)
 
         self.retranslateUi(Form)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -196,5 +196,5 @@ class Ui_Form(object):
         self.label_7.setText(_translate("Form", "Confirm Password again:"))
         self.H_RegButton.setText(_translate("Form", "Register"))
         self.H_LogoutButton.setText(_translate("Form", "Logout"))
-        self.H_NewConvButton.setText(_translate("Form", "Start new Conversation"))
+        self.H_Refresh_Contacts.setText(_translate("Form", "Refresh contacts"))
         self.H_sendButton.setText(_translate("Form", "Send"))
