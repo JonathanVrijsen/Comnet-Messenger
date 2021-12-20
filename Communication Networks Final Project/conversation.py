@@ -27,19 +27,23 @@ class Conversation:
         for message in self.messages:
             message_string = message_string + message.sender + ";,;" + message.content + ";;;"
         message_string = message_string[0:len(message_string) - 3]  # cut off last ";;;"
-        to_encode_string = to_encode_string + message_string
+        if message_string != "":
+            to_encode_string = to_encode_string + message_string
         
         return to_encode_string
 
     def decode_conversation(self, to_decode_string):
+
+
         # first create an empty conversation, use this function on the empty conversation
         conv_attr = to_decode_string.split(" -- ")
         self.id = conv_attr[0]
         self.members = conv_attr[1].split(";;;")
         messages = conv_attr[2].split(";;;")
-        for message_str in messages:
-            message = message_str.split(";,;")
-            self.messages.append(Message(message[0], message[1]))
+        if messages != ['']:
+            for message_str in messages:
+                message = message_str.split(";,;")
+                self.messages.append(Message(message[0], message[1]))
 
 
 
