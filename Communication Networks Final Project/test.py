@@ -16,17 +16,29 @@ from cryptography.fernet import Fernet
 # print(Keyserver_symkey)
 # print(type(Keyserver_symkey))
 
-import hashlib
+# import hashlib
 
-hash_object = hashlib.sha1(b'Hello World')
+# hash_object = hashlib.sha1(b'Hello World')
 
-password = ""
-pb = bytes(password, 'utf-8')
-x = hashlib.sha1(pb)
+# password = ""
+# pb = bytes(password, 'utf-8')
+# x = hashlib.sha1(pb)
 
-pb = bytes(password, 'utf-8')
-y = hashlib.sha1(pb)
-print(type(hash_object.hexdigest()))
-print(y.hexdigest())
+# pb = bytes(password, 'utf-8')
+# y = hashlib.sha1(pb)
+# print(type(hash_object.hexdigest()))
+# print(y.hexdigest())
+import conversation
+import message
+import symmetricKeying
 
+id = symmetricKeying.hashString("josjan")
+print(id)
 
+conv = conversation.Conversation(["jos", "jan"], "12")
+conv.add_message(message.Message("jos", "hallo"))
+conv.add_message(message.Message("jan", "dag jos"))
+encoded_conv = conv.encode_conversation()
+print(encoded_conv)
+decoded_conv = conversation.Conversation([], "")
+decoded_conv.decode_conversation(encoded_conv)
