@@ -267,8 +267,17 @@ class Client:
             print("Cl decrypts symm key")
             print(self.Keyserver_symkey)
 
-    def send_message(self, id, msg):
-        total_string = "az - za"
+    def send_message(self, members, msg):
+        members.append(self.user.username)
+        members = sorted(members)
+        first = True
+        for m in members:
+            if first:
+                total_string = m
+                first = first and (not first)
+            else:
+                total_string = total_string + " - " + m
+
         id = hashString(total_string)
 
         print("CL sends msg: ", msg)

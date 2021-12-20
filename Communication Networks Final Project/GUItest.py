@@ -125,18 +125,19 @@ class ClientWindow(QWidget, Ui_Form):
 
     def send_msg(self):
         msg = self.H_MessageBox.text()
-        self.client.send_message("", msg)
+        receivers = []
+        targets = self.H_ContactList.selectedItems()
+        for target in targets:
+            receivers.append(target.text())
 
-
-        #targets = self.H_ContactList.selectedItems()
-        #if len(targets) != 0:
-        #    print(targets)
-        #    self.H_MsgErrorLabel.clear()
+        if len(receivers) > 0:
+            print(receivers)
+            self.H_MsgErrorLabel.clear()
             #TODO implement with client
 
-        #else:
-        #    self.H_MsgErrorLabel.setText("No target was selected")
-        #self.client.send_message(msg)
+        else:
+            self.H_MsgErrorLabel.setText("No target was selected")
+        self.client.send_message(receivers, msg)
 
     def create_conversation(self):
         self.stackedWidget_2.setCurrentWidget((self.CC_activated))
