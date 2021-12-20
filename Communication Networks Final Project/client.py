@@ -201,14 +201,15 @@ class Client:
 
 
     def get_messages(self, contact):
-        asked_members = [contact, self.user.username]
+        contact.append(self.user.username)
+        asked_members = contact
         asked_members = sorted(asked_members)
         for conv in self.conversations:
             if sorted(conv.members) == asked_members:
                 ans = []
                 for mes in conv.messages:
 
-                    ans.append(mes[0] + ": " + mes[1])
+                    ans.append(mes.sender + ": " + mes.content)
                 return ans
         print("fuck")
 

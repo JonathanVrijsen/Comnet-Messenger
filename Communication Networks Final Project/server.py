@@ -176,7 +176,7 @@ class Server:
 
                 sender = connectedClient.user
                 #TODO user is last registered, not last logged in
-                message = Message(sender, msg)
+                message = Message(sender.username, msg)
 
                 #check if message id is in existing conversations
                 for conversation in self.conversations:
