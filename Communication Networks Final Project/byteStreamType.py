@@ -20,4 +20,6 @@ class ByteStreamType(enum.Enum):
     requestconversationkey = 18
     requestmembers = 19
     answermembers = 20
+    requestallids = 21
+    answerallids = 22
     # TODO add (pls stop)

@@ -2,6 +2,7 @@ import hashlib
 import threading
 
 import asymmetricKeying
+import byteStreamType
 import conversation
 import symmetricKeying
 from asymmetricKeying import *
@@ -83,7 +84,9 @@ class Client:
             password_ans_bs = ByteStream(msg)
             ans_type = password_ans_bs.messageType
             if ans_type == ByteStreamType.passwordcorrect:
+                self.encrypted_username = password_ans_bs.content
                 print("password correct")
+                print("encrypted name:", self.encrypted_username)
                 self.user = User(username, password)
 
                 byteStreamOut = ByteStream(ByteStreamType.loginrequest, username + " - " + self.encrypted_username)
@@ -214,6 +217,23 @@ class Client:
     def get_conversations(self):
         # request all the user's conversation from the server
 
+        #first: get all message id's of which the user is a member
+        byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestallids,"")
+        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+        self.clientToMainSocket.send(out)
+
+        rcvd = self.clientToMainSocket.recv(1024)
+        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
+        byteStreamIn = ByteStream(rcvd)
+        if byteStreamIn.messageType == byteStreamType.ByteStreamType.answerallids:
+            id_array = byteStreamIn.content
+            ids = id_array.split(" - ")
+            print("CLIENT RECEIVED IDS:", ids)
+
+        #secondly: get content of each conversation
+        pass
+
+    def get_conversation(self, id):
         pass
 
     def first_message_to_server(self):

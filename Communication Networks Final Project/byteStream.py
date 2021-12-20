@@ -31,7 +31,7 @@ def constructor_info(message_type, content):
     elif message_type == byteStreamType.ByteStreamType.symkeyanswer:
         out_string = "symkeyanswer - " + str(content)  # content = sym key of sender
     elif message_type == byteStreamType.ByteStreamType.passwordcorrect:
-        out_string = "passwordcorrect" # content = \
+        out_string = "passwordcorrect - " + str(content)
     elif message_type == byteStreamType.ByteStreamType.passwordwrong:
         out_string = "passwordwrong" # content = \
     elif message_type == byteStreamType.ByteStreamType.registertomain:
@@ -46,6 +46,10 @@ def constructor_info(message_type, content):
         out_string = "requestmembers - " + content
     elif message_type == byteStreamType.ByteStreamType.answermembers:
         out_string = "answermembers - " + content
+    elif message_type == byteStreamType.ByteStreamType.requestallids:
+        out_string = "requestallids"
+    elif message_type == byteStreamType.ByteStreamType.answerallids:
+        out_string = "answerallids - " + content
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = out_string.encode("utf-8")
@@ -109,9 +113,10 @@ def extract_from_byte_string(out_string):
         (start, end) = re.search(r"^symkeyanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.symkeyanswer
         content = out_string[end:]
-    elif re.search(r"^passwordcorrect$", out_string) is not None:
+    elif re.search(r"^passwordcorrect - ", out_string) is not None:
+        (start, end) = re.search(r"^passwordcorrect - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.passwordcorrect
-        content = ""
+        content = out_string[end:]
     elif re.search(r"^passwordwrong$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.passwordwrong
         content = ""
@@ -138,6 +143,14 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^answermembers - ", out_string) is not None:
         (start, end) = re.search(r"^answermembers - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.answermembers
+        content = out_string[end:]
+    elif re.search(r"^requestallids$", out_string) is not None:
+        (start, end) = re.search(r"^requestallids$", out_string).span()
+        message_type = byteStreamType.ByteStreamType.requestallids
+        content = out_string[end:]
+    elif re.search(r"^answerallids - ", out_string) is not None:
+        (start, end) = re.search(r"^answerallids - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.answerallids
         content = out_string[end:]
 
     else:

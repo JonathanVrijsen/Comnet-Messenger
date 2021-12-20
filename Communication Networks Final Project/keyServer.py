@@ -166,9 +166,13 @@ class keyServer:
                         break
 
                 if password_correct:
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordcorrect, "")
+                    sign = symmetricKeying.symmEncrypt(username.encode('ascii'), self.serverCommonKey)
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordcorrect, str(sign))
+                    out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                    connectionSocket.send(out)
+
                     newUser = User(connectedClient.user.username, password)
-                    connectedClient.set_user(newUser) #user set with password, client can obtain keys
+                    connectedClient.set_user(newUser)  # user set with password, client can obtain keys
                 else:
                     print("password incorrect!!")
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordwrong, "")
