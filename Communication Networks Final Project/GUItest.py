@@ -91,9 +91,25 @@ class ClientWindow(QWidget, Ui_Form):
             self.stackedWidget.setCurrentWidget(self.page_2)
             tile = "User: " + self.username
             self.setWindowTitle(tile)
+            self.update_thread = Thread(target=self.check_for_message)
+            self.update_thread.start()
 
         else:
             self.H_LogErrorTextBox.setText("Wrong username or password")
+
+    def check_for_message(self):
+        while True:
+            time.sleep(2)
+            targets = self.H_ContactList.selectedItems()
+            possible_senders = []
+            for target in targets:
+                possible_senders.append(target.text())
+
+            if len(possible_senders) > 0:
+                messages = self.client.get_messages(possible_senders)
+                print("messages received at gui")
+                for message in messages:
+                    self.H_ConvList.addItem(QListWidgetItem(message))
 
     def logout(self):
         self.stackedWidget.setCurrentWidget(self.page)

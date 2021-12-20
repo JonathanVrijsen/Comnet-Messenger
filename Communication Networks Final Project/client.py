@@ -157,17 +157,17 @@ class Client:
                             newconversation = Conversation(members, id)
                             self.conversations.append(newconversation)
 
-
                 for conv in self.conversations:
                     if id == conv.id:
                         members = conv.members
                         sendernameismmember = False
+                        print("CL found id: " + id)
                         for m in members:
                             membername = m
                             if sendername == membername:
                                 sendernameismmember = True
                                 sender = m
-
+                        print("CL got message from: "+sender)
                         if sendernameismmember:
                             message = Message(User(sender), msg)
                             conv.add_message(message)
@@ -199,6 +199,18 @@ class Client:
                     self.all_conversation_members.append(conversation_members)
                     self.conversations.append(conversation)
 
+
+    def get_messages(self, contact):
+        asked_members = [contact, self.user.username]
+        asked_members = sorted(asked_members)
+        for conv in self.conversations:
+            if sorted(conv.members) == asked_members:
+                ans = []
+                for mes in conv.messages:
+
+                    ans.append(mes[0] + ": " + mes[1])
+                return ans
+        print("fuck")
 
 
     def register(self, username, password1, password2, password3):
