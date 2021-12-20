@@ -127,6 +127,7 @@ class ClientWindow(QWidget, Ui_Form):
         msg = self.H_MessageBox.text()
         receivers = []
         targets = self.H_ContactList.selectedItems()
+        # targets is leeg omdat self.H_ContactList.selectedItems() niet meer op de GUI is
         for target in targets:
             receivers.append(target.text())
 
