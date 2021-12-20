@@ -61,12 +61,16 @@ class ClientWindow(QWidget, Ui_Form):
 
 
         self.stackedWidget.setCurrentWidget(self.page)
+        self.stackedWidget_2.setCurrentWidget(self.CC_standard)
         self.H_LoginButton.clicked.connect(self.login)
         self.H_LogoutButton.clicked.connect(self.logout)
         self.H_ContactList.clicked.connect(self.contact_clicked)
         self.H_sendButton.clicked.connect(self.send_msg)
         self.H_RegButton.clicked.connect(self.register)
-        self.H_Refresh_Contacts.clicked.connect(self.refresh_contacts)
+        #self.H_Refresh_Contacts.clicked.connect(self.refresh_contacts)
+        self.H_CreateNewConvButton.clicked.connect(self.create_conversation)
+        self.H_CC_BackButton.clicked.connect(self.exit_CC)
+        self.H_CC_AddConvButton.clicked.connect(self.finalise_conversations)
 
         self.username = None
         # self.password = None
@@ -131,11 +135,33 @@ class ClientWindow(QWidget, Ui_Form):
         msg = self.H_MessageBox.text()
         self.client.send_message(msg)
 
-    def refresh_contacts(self):
-        self.contactList = self.client.request_contacts()
+    def create_conversation(self):
+        self.stackedWidget_2.setCurrentWidget((self.CC_activated))
+        self.H_CC_AllUserList.clear()
+        allusers = self.client.request_contacts()
 
-        for contact in self.contactList:
-            self.H_ContactList.addItem(QListWidgetItem(contact))
+        for user in allusers:
+            self.H_CC_AllUserList.addItem(QListWidgetItem(user))
+
+    def finalise_conversations(self):
+        targets = self.H_CC_AllUserList.selectedItems()
+        targets_str = []
+        for target in targets:
+            targets_str.append(target.data(0))
+
+        print(targets_str)
+        #TODO create new conv in client with this list
+        self.stackedWidget_2.setCurrentWidget((self.CC_standard))
+
+
+    def exit_CC(self):
+        self.stackedWidget_2.setCurrentWidget((self.CC_standard))
+
+    #def refresh_contacts(self):
+        #self.contactList = self.client.request_contacts()
+
+        #for contact in self.contactList:
+            #self.H_ContactList.addItem(QListWidgetItem(contact))
 
 
 
