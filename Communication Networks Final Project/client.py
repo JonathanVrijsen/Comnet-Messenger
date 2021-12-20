@@ -77,13 +77,16 @@ class Client:
             ans_type=password_ans_bs.messageType
             if ans_type == ByteStreamType.passwordcorrect:
                 print("password correct")
+                self.request_contacts()
+                return True
             elif ans_type == ByteStreamType.passwordwrong:
                 print("password wrong")
 
         elif ans_type == ByteStreamType.loginanswer:
             print("user non existent")
             self.user = None
-            return False
+
+        return False
 
 
     def register(self, username, password1, password2, password3):
@@ -203,6 +206,20 @@ class Client:
 
         self.clientToMainSocket.send(b)
 
+    def request_contacts(self):
+        req_bs = ByteStream(byteStreamType.ByteStreamType.contactrequest, "")
+        out = symmetricKeying.symmEncrypt(req_bs.outStream, self.Mainserver_symkey)
+        print("contactrequest sent")
+        self.clientToMainSocket.send(out)
+
+        msg = self.clientToMainSocket.recv(1024)
+        msg = symmetricKeying.symmDecrypt(msg, self.Mainserver_symkey)
+        print(msg)
+        byteStreamIn = ByteStream(msg)
+
+        if byteStreamIn.messageType == ByteStreamType.contactanswer:
+            contacts = byteStreamIn.content.split(" - ")
+            print(contacts)
 
     def logout(self):
         # go back to begin screen

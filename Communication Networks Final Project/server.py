@@ -110,6 +110,23 @@ class Server:
                     connectedClient.set_user(newUser)
                     self.knownUsers.add(newUser) #doesn't add if already in set
 
+            elif byteStreamIn.messageType == ByteStreamType.contactrequest:
+                print("CONTACT REQUEST AT MAIN SERVER")
+                contacts = ""
+                first = True
+                for user in self.knownUsers:
+                    username = user.username
+                    if first:
+                        contacts = contacts + username
+                        first = not first
+                    else:
+                        contacts = contacts + " - " + username
+
+                byteStreamOut = ByteStream(ByteStreamType.contactanswer, contacts)
+                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                connectionSocket.send(out)
+
+
             #TODO add message to bytestreamtypes
             elif byteStreamIn.messageType == ByteStreamType.message:
                 #extract conversation id and content from rcvdContent
