@@ -137,7 +137,7 @@ class Client:
         byteStreamIn = ByteStream(rcvd)
         print(byteStreamIn.messageType)
         if (byteStreamIn.messageType == ByteStreamType.symkeyanswer):
-            self.Keyserver_symkey = byteStreamIn.content
+            self.Keyserver_symkey = symmetricKeying.strToSymkey(byteStreamIn.content)
             print("Cl decrypts symm key")
             print(self.Keyserver_symkey)
 
@@ -166,8 +166,7 @@ class Client:
         print(byteStreamIn.messageType)
         if (byteStreamIn.messageType == ByteStreamType.symkeyanswer):
             print(byteStreamIn.content)
-            symkey = Fernet(byteStreamIn.content)
-            self.Keyserver_symkey = symkey
+            self.Keyserver_symkey = symmetricKeying.strToSymkey(byteStreamIn.content)
             print("Cl decrypts symm key")
             print(self.Keyserver_symkey)
 

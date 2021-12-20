@@ -101,6 +101,7 @@ class keyServer:
         while connectedClient.active:
             connectionSocket = connectedClient.connectionSocket
             rcvd = connectionSocket.recv(1024)
+            print("RECEIVED")
             rcvd = symmetricKeying.symmDecrypt(rcvd, connectedClient.symKey)
             byteStreamIn = ByteStream(rcvd)
             type = byteStreamIn.messageType
