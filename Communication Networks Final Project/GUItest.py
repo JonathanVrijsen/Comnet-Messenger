@@ -169,7 +169,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.stackedWidget_2.setCurrentWidget((self.CC_standard))
 
     def get_conversations(self):
-        pass
+        self.client.get_conversations()
         #TODO implement with client
 
     #def refresh_contacts(self):

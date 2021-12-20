@@ -110,6 +110,24 @@ class Server:
                     print("USER RGISTERED AT MAIN SERVER:", username)
                     newUser = User(username)
                     self.knownUsers.add(newUser) #doesn't add if already in set
+            elif byteStreamIn.messageType == ByteStreamType.requestallids:
+                username = connectedClient.user.username
+                first = True
+                print(len(self.conversations))
+                for conv in self.conversations:
+                    members = conv.members
+                    if username in members:
+                        if first:
+                            id_array = str(conv.id)
+                            first = first and (not first)
+                        else:
+                            id_array = id_array + " - " + str(conv.id)
+                if first:
+                    id_array = ""
+
+                byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answerallids, id_array)
+                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                connectedClient.connectionSocket.send(out)
 
             elif byteStreamIn.messageType == ByteStreamType.loginrequest:
                 (username, sign) = rcvdContent.split(" - ", 1)
