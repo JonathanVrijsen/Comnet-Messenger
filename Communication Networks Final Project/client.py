@@ -77,7 +77,6 @@ class Client:
             ans_type=password_ans_bs.messageType
             if ans_type == ByteStreamType.passwordcorrect:
                 print("password correct")
-                self.request_contacts()
                 return True
             elif ans_type == ByteStreamType.passwordwrong:
                 print("password wrong")
@@ -220,6 +219,9 @@ class Client:
         if byteStreamIn.messageType == ByteStreamType.contactanswer:
             contacts = byteStreamIn.content.split(" - ")
             print(contacts)
+            return sorted(contacts)
+
+        return [self.user.username]
 
     def logout(self):
         # go back to begin screen
