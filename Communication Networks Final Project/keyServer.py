@@ -42,7 +42,9 @@ class keyServer:
         self.connectedClients = []
 
         self.username_password_pairs = []  # already registered users
-        self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
+        #self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
+
+        self.database = []
 
     def listen(self):
         self.serverSocket.listen(64)
@@ -110,9 +112,12 @@ class keyServer:
             if type == ByteStreamType.registerrequest:
                 (username, password) = content.split(' - ', 1)
                 if self.check_existense_of_account(username):
-                    raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
+                    print("EXISTS")
+                    # raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
                 else:
-                    self.add_user(username, password)
+                    print("DOES NOT EXIST")
+                    self.database.append((username, password))
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
 
                 #            username_already_used = False
@@ -127,8 +132,8 @@ class keyServer:
                 #            if (not username_already_used):
                 #                self.username_password_pairs.append((username, password))
                 #                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
-                answer_bs = symmetricKeying.symmEncrypt(answer_bs, connectedClient.symKey)
-                connectionSocket.send(answer_bs.outStream)
+                out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                connectionSocket.send(out)
 
             elif type == ByteStreamType.loginrequest:
                 user_exists = False
@@ -222,8 +227,13 @@ class keyServer:
     def write(self, location):
         pass
 
-    def check_existence_of_account(self, login):
-        return login in self.database
+    def check_existense_of_account(self, username):
+        for temp in self.database:
+            tempname = temp[0]
+            if tempname == username:
+                return True
+
+        return False
 
     def find_in_sorted_list(self, login):
         return self.database[login]

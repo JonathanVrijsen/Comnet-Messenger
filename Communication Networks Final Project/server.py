@@ -28,7 +28,7 @@ class Server:
         self.connectedClients = []
         self.currentThreads = []
 
-        self.knownUsers = {} #empty set (basically list with unique elements)
+        self.knownUsers = set() #empty set (basically list with unique elements)
 
         self.serverPort = 12100
         self.stopPort = 12101

@@ -93,12 +93,14 @@ class Client:
             if (self.Keyserver_symkey != None):
                 print(self.Keyserver_symkey)
                 print(reg_bs)
-                reg_bs = symmetricKeying.symmEncrypt(reg_bs.outStream, self.Keyserver_symkey)
-                self.clientToKeySocket.send(reg_bs.outStream)
+                out = symmetricKeying.symmEncrypt(reg_bs.outStream, self.Keyserver_symkey)
+                print("SENT")
+                self.clientToKeySocket.send(out)
                 ans_bytes = self.clientToKeySocket.recv(1024)
                 ans_bytes = symmetricKeying.symmDecrypt(ans_bytes, self.Keyserver_symkey)
                 ans_bs = ByteStream(ans_bytes)
                 ans = ans_bs.content
+                print(ans)
                 if ans == "succes":
                     return RegisterErrorType.NoError
                 else:

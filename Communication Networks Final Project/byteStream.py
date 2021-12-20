@@ -59,7 +59,7 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^registeranswer - [\S]{1,20}$", out_string) is not None:
         (start, end) = re.search(r"^registeranswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.registeranswer
-        content = out_string[end:-1]
+        content = out_string[end:]
     elif re.search(r"^loginanswer - [\S]{1,20}$", out_string) is not None:
         (start, end) = re.search(r"^loginanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.loginanswer
