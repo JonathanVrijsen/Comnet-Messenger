@@ -73,18 +73,20 @@ class ClientWindow(QWidget, Ui_Form):
         self.client = Client()
 
     def login(self):
-        self.stackedWidget.setCurrentWidget(self.page_2)
-
         self.username = self.H_usernameBox.toPlainText()
         self.password = self.H_passwordBox.text()
-        self.client.login(self.username, self.password)
-        tile = "User: " + self.username
-        self.setWindowTitle(tile)
+        successful = self.client.login(self.username, self.password)
+        print(successful)
 
-        self.contactList = ["Jonathan", "Louis", "Sam"]
-        for i in self.contactList:
-            contact = QListWidgetItem(i)
-            self.H_ContactList.addItem(contact)
+        if successful:
+            self.stackedWidget.setCurrentWidget(self.page_2)
+            tile = "User: " + self.username
+            self.setWindowTitle(tile)
+
+            self.contactList = ["Jonathan", "Louis", "Sam"]
+            for i in self.contactList:
+                contact = QListWidgetItem(i)
+                self.H_ContactList.addItem(contact)
 
     def logout(self):
         self.stackedWidget.setCurrentWidget(self.page)
@@ -189,7 +191,7 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
             i=0
             for j in users:
                 self.S_DataTable.setItem(i, 0, QTableWidgetItem(j))
-                self.S_DataTable.setItem(i, 1, QTableWidgetItem(users[j]))
+                self.S_DataTable.setItem(i, 1, QTableWidgetItem(users[j][0]))
                 i=i+1
 
     def closeEvent(self, event):

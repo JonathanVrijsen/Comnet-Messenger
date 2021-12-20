@@ -37,35 +37,33 @@ class Client:
         self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
 
         login_bs = ByteStream(ByteStreamType.loginrequest, username)
-        print(login_bs.outStream)
         self.clientToKeySocket.send(login_bs.outStream)
         login_ans_bytes = self.clientToKeySocket.recv(1024)
-        print("login ans received")
-        # self.clientToKeySocket.close()
-        print(login_ans_bytes)
         login_ans_bs = ByteStream(login_ans_bytes)
-        print(login_ans_bs)
         login_ans = login_ans_bs.content
-        print(login_ans)
-        if login_ans == "send password":
+        if login_ans == "sendpassword":
             # send password
-            # self.send_password(password)
+
             password_bs = ByteStream(ByteStreamType.passwordanswer, password)
             self.clientToKeySocket.send(password_bs.outStream)
             password_ans_bytes = self.clientToKeySocket.recv(1024)
             password_ans_bs = ByteStream(password_ans_bytes)
             password_ans = password_ans_bs.content
-            if password_ans == "correct password":
+            print(password_ans)
+            if password_ans == "passwordcorrec":  # something wrong with regex
+                print("password correct")
                 self.user = User(username, password)
                 self.get_conversations()
                 self.clientToKeySocket.close()
-                return RegisterErrorType.NoError
+                return True
             else:
+                self.user = None
                 self.clientToKeySocket.close()
-                return RegisterErrorType.UsernameAlreadyInUse
+                return False
         else:
+            self.user = None
             self.clientToKeySocket.close()
-            return RegisterErrorType.UsernameAlreadyInUse
+            return False
 
     def register(self, username, password1, password2, password3):
 

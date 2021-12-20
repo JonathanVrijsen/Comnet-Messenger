@@ -38,19 +38,32 @@ class keyServer:
 
         self.currentThreads = []
         self.connectedClients = []
-        self.connectionSockets = []  # some sockets need to remain active for a while
+        self.connectionSockets = dict()  # {"connctionSocket", "username"} # some sockets need to remain active for a while
         self.username_password_pairs = []  # already registered users
         self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
     def listen(self):
         print("keyserver listening")
         self.serverSocket.listen(64)  # Number of allowed unnaccepted connections
+        print("keyserver listened")
         connectionSocket, addr = self.serverSocket.accept()  # return values: socket for client, and clientIP
+        print("content abt to be rec")
         rcvdContent = connectionSocket.recv(1024)
+        print("content rec")
         if rcvdContent != b"":
+            print("content not empty")
+            print(rcvdContent)
             newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
             newThread.start()
             self.currentThreads.append(newThread)
+
+    def listen_for_password(self, connectionSocket):
+        rcvdContent = connectionSocket.recv(1024)
+        print("content rec listen for password")
+        if rcvdContent != b"":
+            print("content not empty listen for password")
+            print(rcvdContent)
+            self.handle_message(rcvdContent, connectionSocket)
 
     def create_conversation(self):
         id = getrandbits(32)
@@ -78,8 +91,10 @@ class keyServer:
                 raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
                 answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
             else:
-                self.add_user(username , password)
+                self.add_user(username, password)
                 answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
+            connectionSocket.send(answer_bs.outStream)
+            connectionSocket.close()
 
 #            username_already_used = False
 #            (username, password) = msg_content.split(' - ', 1)
@@ -94,21 +109,23 @@ class keyServer:
 #                self.username_password_pairs.append((username, password))
 #                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
 
-            connectionSocket.send(answer_bs.outStream)
-            connectionSocket.close()
-
         if msg_type == ByteStreamType.loginrequest:
             username = msg_content
             if not self.check_existence_of_account(username):
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
+                print("username non existent!")
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "usernonexistent")
                 connectionSocket.send(answer_bs.outStream)
                 connectionSocket.close()  # user non existent => login abort
                 raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
             else:
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "send password")
+                print("username exists!")
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "sendpassword")
+                print(answer_bs)
                 connectionSocket.send(answer_bs.outStream)
                 # connectionSocket not closed to receive password
-                self.connectionSockets.append((connectionSocket, username))
+                self.connectionSockets[connectionSocket] = username
+                # self.connectionSockets.append((connectionSocket, username))
+                self.listen_for_password(connectionSocket)
                 
 #            user_exists = False
 #            username = msg_content
@@ -121,7 +138,6 @@ class keyServer:
             ##    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "send password")
             #    connectionSocket.send(answer_bs.outStream)
                 # connectionSocket not closed to receive password
-                self.connectionSockets.append((connectionSocket, username))
 #           else:
 #                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
 #                connectionSocket.send(answer_bs.outStream)
@@ -130,22 +146,24 @@ class keyServer:
         if msg_type == ByteStreamType.passwordanswer:
             password = msg_content
             password_correct = False
-            i = self.connectionSockets.index(connectionSocket)
-            username = self.connectionSockets[i][1]
-            for name_pw_pair in self.username_password_pairs:
-                if name_pw_pair == (username, password):
+            username = self.connectionSockets[connectionSocket]
+            if self.check_existence_of_account(username):
+                if self.get_password(username) == password:
+                    print("password correct!!")
                     password_correct = True
+
             if password_correct:
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordanswer, "password correct")
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordcorrect")
                 connectionSocket.send(answer_bs.outStream)
                 # Close and remove connectionSocket
-                self.connectionSockets.remove(connectionSocket)
+                del self.connectionSockets[connectionSocket]
                 connectionSocket.close()
             else:
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordanswer, "password wrong")
+                print("password incorrect!!")
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordwrong")
                 connectionSocket.send(answer_bs.outStream)
                 # Close and remove connectionSocket
-                self.connectionSockets.remove(connectionSocket)
+                del self.connectionSockets[connectionSocket]
                 connectionSocket.close()
 
         # step: if request for public key, send it
