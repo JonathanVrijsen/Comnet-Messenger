@@ -244,10 +244,10 @@ class Client:
                         first = first and (not first) or not first
                     else:
                         conversation_members = conversation_members + ", " + member
-
+            all_conversation_members.append(conversation_members)
             self.conversations.append(conversation)
-            print("CONVERSATION FOUND")
-            print("debugger")
+
+        return all_conversation_members
 
     def get_one_conversation(self, id):
         byteStreamOut = ByteStream(byteStreamType.ByteStreamType.getconversation, id)

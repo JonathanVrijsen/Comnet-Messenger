@@ -171,6 +171,7 @@ class ClientWindow(QWidget, Ui_Form):
     def get_conversations(self):
         self.H_ContactList.clear()
         convnames = self.client.get_conversations()
+        print(convnames)
 
         for name in convnames:
             self.H_ContactList.addItem(QListWidgetItem(name))
