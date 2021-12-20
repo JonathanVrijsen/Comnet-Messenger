@@ -1,5 +1,5 @@
 import asymmetricKeying
-from asymmetricKeying import generateKeys
+from asymmetricKeying import *
 from user import User
 from socket import *
 from RegErrorTypes import *
@@ -29,6 +29,16 @@ class Client:
 
         self.clientToKeySocket = socket(AF_INET, SOCK_STREAM)
         self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
+        self.Keyserver_pubkey = ""
+        self.Keyserver_symkey = ""
+
+        self.first_message_to_keyserver()
+
+
+        #self.clientToKeySocket.send(reg_bs.outStream)
+
+
+        self.contacts = []
 
     def login(self, username, password):
         # send username and password to keyserver
@@ -90,6 +100,7 @@ class Client:
             else:
                 return RegisterErrorType.UsernameAlreadyInUse
 
+
     def get_server_information(self):
         return '127.0.0.1', 12100, '127.0.0.1', 12002
 
@@ -99,8 +110,9 @@ class Client:
         pass
 
     def first_message_to_server(self):
-        byteStreamOut = ByteStream(ByteStreamType.publickey, self.pubKey)
+        byteStreamOut = ByteStream(ByteStreamType.keyrequest, self.pubKey)
         outstream = byteStreamOut.outStream
+
         self.clientToMainSocket.send(outstream)
 
         #wait until server repplies with symmetric key for connection
@@ -111,6 +123,30 @@ class Client:
         byteStreamIn = ByteStream(rcvd)
         if (byteStreamIn.messageType == ByteStreamType.symmetrickey):
             self.mainSymKey = byteStreamIn.content
+
+        rcvd = asymmetricKeying.rsa_receive(rcvd)
+    def first_message_to_keyserver(self):
+        byteStreamOut = ByteStream(ByteStreamType.keyrequest, self.pubKey)
+        outstream = byteStreamOut.outStream
+        print("Cl sends own pubkey:")
+        print(self.pubKey)
+        self.clientToKeySocket.send(outstream)
+
+        #wait until server repplies with symmetric key for connection
+        rcvd = self.clientToKeySocket.recv(1024)
+
+        byteStreamIn = ByteStream(rcvd)
+        if (byteStreamIn.messageType == ByteStreamType.pubkeyanswer):
+            self.Keyserver_pubkey = byteStreamIn.content
+            print("Cl receives KS pubkey:")
+            print(self.Keyserver_pubkey)
+
+        rcvd = self.clientToKeySocket.recv(1024)
+        rcvd = rsa_receive(rcvd, self.Keyserver_pubkey, self.privKey)
+
+        byteStreamIn = ByteStream(rcvd)
+        if (byteStreamIn.messageType == ByteStreamType.symkeyanswer):
+            self.Keyserver_pubkey = byteStreamIn.content
 
 
     def send_message(self, message, conversation = None):

@@ -38,24 +38,50 @@ class keyServer:
 
         self.currentThreads = []
         self.connectedClients = []
-        self.connectionSockets = dict()  # {"connctionSocket", "username"} # some sockets need to remain active for a while
+        self.connectionSockets = []  # some sockets need to remain active for a while
         self.username_password_pairs = []  # already registered users
         self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
     def listen(self):
-        print("keyserver listening")
-        self.serverSocket.listen(64)  # Number of allowed unnaccepted connections
-        print("keyserver listened")
-        connectionSocket, addr = self.serverSocket.accept()  # return values: socket for client, and clientIP
-        print("content abt to be rec")
+        self.serverSocket.listen(64)
+        connectionSocket, addr = self.serverSocket.accept()
         rcvdContent = connectionSocket.recv(1024)
-        print("content rec")
-        if rcvdContent != b"":
-            print("content not empty")
-            print(rcvdContent)
-            newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
-            newThread.start()
-            self.currentThreads.append(newThread)
+
+        # check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
+        byteStreamIn = ByteStream(rcvdContent)
+        if (byteStreamIn.messageType == ByteStreamType.keyrequest):
+            clientPubKey = asymmetricKeying.string_to_pubkey(byteStreamIn.content)
+            print("KS receivers client pubkey:")
+            print(clientPubKey)
+
+        print("KS sends own pubkey:")
+        print(self.pubKey)
+        # send own public key to client
+        byteStreamOut = ByteStream(ByteStreamType.pubkeyanswer, self.pubKey)
+        connectionSocket.send(byteStreamOut.outStream)  # send own public key
+
+        # encrypt symmetric key and send to client
+        newSymKey = Fernet.generate_key()
+        print("KS sends symkey:")
+        print(newSymKey)
+        msg_bs = ByteStream(ByteStreamType.symkeyanswer, newSymKey)
+        msg = asymmetricKeying.rsa_sendable(msg_bs.outStream, self.privKey, clientPubKey)
+        connectionSocket.send(byteStreamOut.outStream)
+
+        #newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
+        #self.connectedClients.append(newConnectedClient)
+
+        # launch new thread dedicated to connectedClient
+        #newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient, None))
+        #self.currentThreads.append(newThread)
+        #newThread.start()
+
+
+
+
+        #newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
+        #newThread.start()
+        #self.currentThreads.append(newThread)
 
     def listen_for_password(self, connectionSocket):
         rcvdContent = connectionSocket.recv(1024)
