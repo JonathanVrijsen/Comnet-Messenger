@@ -154,15 +154,9 @@ class ServerOverview(QWidget, Ui_ServerWind):
     def server_listen(self):
         i = 0
         while True:
-            message,addr = self.MainServer.listen_silently()
+            self.MainServer.listen()
             if self.stop_thread:
                 break
-            Ip = addr[0]
-            port = str(addr[1])
-            self.S_DataTable.setItem(i, 0, QTableWidgetItem(message))
-            self.S_DataTable.setItem(i, 1, QTableWidgetItem(Ip))
-            self.S_DataTable.setItem(i, 2, QTableWidgetItem(port))
-            i = i+1
 
     def closeEvent(self, event):
         self.stop_thread = True

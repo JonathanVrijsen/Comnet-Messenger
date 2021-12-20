@@ -111,11 +111,11 @@ class Client:
                 if ans != "failed":
                     self.encrypted_username = ans
                     print("Received encrypted username:", str(ans))
+
                     return RegisterErrorType.NoError
                 else:
                     return RegisterErrorType.UsernameAlreadyInUse
 
-                #send register to main server: registertomain - username - encrypted_username
 
 
     def get_server_information(self):

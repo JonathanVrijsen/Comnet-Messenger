@@ -34,6 +34,8 @@ def constructor_info(message_type, content):
         out_string = "passwordcorrect" # content = \
     elif message_type == byteStreamType.ByteStreamType.passwordwrong:
         out_string = "passwordwrong" # content = \
+    elif message_type == byteStreamType.ByteStreamType.registertomain:
+        out_string = "registertomain - " + content # content = list of usernames
 
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
@@ -103,6 +105,10 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^passwordwrong$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.passwordwrong
         content = ""
+    elif re.search(r"^registertomain - ", out_string) is not None:
+        (start, end) = re.search(r"^registertomain - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.registertomain
+        content = out_string[end:]
 
     else:
         raise CustomError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)

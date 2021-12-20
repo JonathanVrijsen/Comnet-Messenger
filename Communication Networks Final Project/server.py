@@ -1,5 +1,6 @@
 from cryptography.fernet import Fernet
 
+import symmetricKeying
 from byteStream import ByteStream
 from byteStreamType import ByteStreamType
 from user import User
@@ -50,28 +51,34 @@ class Server:
         rcvdContent = connectionSocket.recv(1024)
 
         #check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
-        #TODO add clientpublickey to bytestreamtypes
         byteStreamIn = ByteStream(rcvdContent)
-        if (byteStreamIn.messageType == ByteStreamType.clientpublickey):
-            clientPubKey = byteStreamIn.content
+        if (byteStreamIn.messageType == ByteStreamType.keyrequest):
+            clientPubKey = asymmetricKeying.string_to_pubkey(byteStreamIn.content)
+            print("KS receivers client pubkey:")
+            print(clientPubKey)
 
-        #send own public key to client
-        #TODO add publickey to bystreamtypes
-        byteStreamOut = ByteStream(ByteStreamType.publickey, self.pubKey)
-        connectionSocket.send(byteStreamOut.outStream) #send own public key
+        print("KS sends own pubkey:")
+        print(self.pubKey)
+        # send own public key to client
+        byteStreamOut = ByteStream(ByteStreamType.pubkeyanswer, self.pubKey)
+        connectionSocket.send(byteStreamOut.outStream)  # send own public key
 
-        #encrypt symmetric key and send to client
+        # encrypt symmetric key and send to client
         newSymKey = Fernet.generate_key()
-        msg = asymmetricKeying.rsa_sendable(newSymKey, self.privKey, clientPubKey)
-        #TODO add symmetrickey to bytestreamtypes
-        byteStreamOut = ByteStream(ByteStreamType.symmetrickey, msg)
-        connectionSocket.send(byteStreamOut.outStream)
+        print("KS sends symkey:")
+        print(newSymKey)
+        msg_bs = ByteStream(ByteStreamType.symkeyanswer, newSymKey)
+        msg = asymmetricKeying.rsa_sendable(msg_bs.outStream, self.privKey, clientPubKey)
+        print("KS sends symkey, encrypted")
+        print(msg)
+        connectionSocket.send(msg)
 
+        # create new connected client
         newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
         self.connectedClients.append(newConnectedClient)
 
-        #launch new thread dedicated to connectedClient
-        newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient, None))
+        # launch new thread dedicated to connectedClient
+        newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient,))
         self.currentThreads.append(newThread)
         newThread.start()
 
@@ -81,17 +88,18 @@ class Server:
         while(connectedClient.active):
             connectionSocket = connectedClient.connectionSocket
 
-            rcvdContent = self.connectionSocket.recv(1024)
-            byteStreamIn = ByteStream(rcvdContent)
+            rcvd = connectionSocket.recv(1024)
+            rcvd = symmetricKeying.symmDecrypt(rcvd, connectedClient.symKey)
+            byteStreamIn = ByteStream(rcvd)
+            rcvdContent = byteStreamIn.content
 
-            #TODO add login to bytestreamtypes
-            if byteStreamIn.messageType == ByteStreamType.login:
-                content = byteStreamIn.content
-                (username, sign) = content.split(" - ", 1)
+            if byteStreamIn.messageType == ByteStreamType.registertomain:
+                (username, sign) = rcvdContent.split(" - ", 1)
 
-                #use common key between keyserver and server to check if key(sign) == username
+                decrypted_username = symmetricKeying.symmDecrypt(sign, self.serverCommonKey)
 
-                if True:
+                if username == decrypted_username:
+                    print("USER RGISTERED AT MAIN SERVER:", username)
                     newUser = User(username)
                     connectedClient.set_user(newUser)
                     self.knownUsers.add(newUser) #doesn't add if already in set
