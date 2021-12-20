@@ -1,5 +1,6 @@
 from cryptography.fernet import Fernet
 
+import byteStreamType
 import symmetricKeying
 from byteStream import ByteStream
 from byteStreamType import ByteStreamType
@@ -117,66 +118,66 @@ class Server:
                 first = True
                 for user in self.knownUsers:
                     username = user.username
-                    if first:
-                        contacts = contacts + username
-                        first = not first
-                    else:
-                        contacts = contacts + " - " + username
+                    if username != connectedClient.user.username:
+                        if first:
+                            contacts = contacts + username
+                            first = not first
+                        else:
+                            contacts = contacts + " - " + username
 
                 byteStreamOut = ByteStream(ByteStreamType.contactanswer, contacts)
                 out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
+            elif byteStreamIn.messageType == ByteStreamType.newconversation:
+                members = rcvdContent.split(" - ")
+                id = symmetricKeying.hashString(rcvdContent)
+                conversation = Conversation(members, id)
+                self.conversations.append(conversation)
 
-            #TODO add message to bytestreamtypes
             elif byteStreamIn.messageType == ByteStreamType.message:
                 #extract conversation id and content from rcvdContent
                 #string has following form: id-content, so split at first occurence of "-"
-                (id, content)=rcvdContent.split("-", 1)
-
-                id=int(id)
+                id = rcvdContent[:40]
+                msg = rcvdContent[43:]
 
                 sender = connectedClient.user
-                message = Message(sender, content)
-
-                newConversation = True
+                message = Message(sender, msg)
 
                 #check if message id is in existing conversations
                 for conversation in self.conversations:
                     if id == conversation.id:
-                        #conversation already exists
-
                         #save message in conversation
                         conversation.add_message(message)
 
                         #find all the receivers
                         members = conversation.members
-
-                        newConversation = False
                         break
 
-                if newConversation:
-                    #conversation does not yet exist
-                    members = [sender]
-
-                    receiverNames = []
-                    #fetch names of receivers from key server based on conversation id
-
-
-                    for receiverName in receiverNames:
-                        members.append(User(receiverName))
-
-                    newConversation = Conversation(members, id)
-                    newConversation.add_message(message)
-
-                #send message to all receivers
-
+                byteStreamOut = ByteStream(byteStreamType.message, str(id) + " - " + sender.username + " - " + msg)
                 for receiver in members:
                     #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
                     for tempConnectedClient in self.connectedClients:
                         if receiver == tempConnectedClient.user and tempConnectedClient != connectedClient:
-                            message = asymmetricKeying.rsa_sendable(message, self.privKey, tempConnectedClient.pubKey)
-                            tempConnectedClient.connectionSocket.send(message)
+                            out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, tempConnectedClient.symKey)
+                            tempConnectedClient.connactionSocket.send(out)
+
+            elif byteStreamIn.messageType == ByteStreamType.requestmembers:
+                id = rcvdContent
+                for conv in self.conversations:
+                    if id == conv.id:
+                        members = conv.members
+                        first = True
+                        for m in members:
+                            if first:
+                                first = not first
+                                total_string = m.username
+                            else:
+                                total_string = total_string + " - " + m.username
+
+                byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answermembers, total_string)
+                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                connectedClient.connectionSocket.send(out)
 
     def listen_silently(self):
 
