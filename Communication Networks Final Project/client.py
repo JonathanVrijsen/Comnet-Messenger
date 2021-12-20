@@ -233,20 +233,22 @@ class Client:
 
         self.conversations.clear()
         for id in ids:
-            conversation = self.get_conversations(id)
+            conversation = self.get_one_conversation(id)
             self.conversations.append(conversation)
+            print("CONVERSATION FOUND")
+            print("debugger")
 
-    def get_conversation(self, id):
+    def get_one_conversation(self, id):
         byteStreamOut = ByteStream(byteStreamType.ByteStreamType.getconversation, id)
         out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
         self.clientToMainSocket.send(out)
 
-        rcvd = self.clientToMainSocket.rcv(1024)
+        rcvd = self.clientToMainSocket.recv(1024)
         rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
         byteStreamIn = ByteStream(rcvd)
         if byteStreamIn.messageType == ByteStreamType.conversation:
             encoded_conversation = byteStreamIn.content
-            conv = conversation.Conversation([],"")
+            conv = conversation.Conversation(None, None)
             conv.decode_conversation(encoded_conversation)
             return conv
 
