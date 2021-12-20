@@ -1,5 +1,6 @@
 import hashlib
 import threading
+import time
 
 import asymmetricKeying
 import byteStreamType
@@ -230,11 +231,24 @@ class Client:
             ids = id_array.split(" - ")
             print("CLIENT RECEIVED IDS:", ids)
 
-        #secondly: get content of each conversation
-        pass
+        self.conversations.clear()
+        for id in ids:
+            conversation = self.get_conversations(id)
+            self.conversations.append(conversation)
 
     def get_conversation(self, id):
-        pass
+        byteStreamOut = ByteStream(byteStreamType.ByteStreamType.getconversation, id)
+        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+        self.clientToMainSocket.send(out)
+
+        rcvd = self.clientToMainSocket.rcv(1024)
+        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
+        byteStreamIn = ByteStream(rcvd)
+        if byteStreamIn.messageType == ByteStreamType.conversation:
+            encoded_conversation = byteStreamIn.content
+            conv = conversation.Conversation([],"")
+            conv.decode_conversation(encoded_conversation)
+            return conv
 
     def first_message_to_server(self):
         byteStreamOut = ByteStream(ByteStreamType.keyrequest, self.pubKey)

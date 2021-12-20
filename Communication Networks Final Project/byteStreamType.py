@@ -22,4 +22,6 @@ class ByteStreamType(enum.Enum):
     answermembers = 20
     requestallids = 21
     answerallids = 22
+    getconversation = 23
+    conversation = 24
     # TODO add (pls stop)

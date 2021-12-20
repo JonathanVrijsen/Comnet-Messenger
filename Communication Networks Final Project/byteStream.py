@@ -50,6 +50,10 @@ def constructor_info(message_type, content):
         out_string = "requestallids"
     elif message_type == byteStreamType.ByteStreamType.answerallids:
         out_string = "answerallids - " + content
+    elif message_type == byteStreamType.ByteStreamType.getconversation:
+        out_string = "getconversation - " + content
+    elif message_type == byteStreamType.ByteStreamType.conversation:
+        out_string = "conversation - " + content
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = out_string.encode("utf-8")
@@ -151,6 +155,14 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^answerallids - ", out_string) is not None:
         (start, end) = re.search(r"^answerallids - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.answerallids
+        content = out_string[end:]
+    elif re.search(r"^getconversation - ", out_string) is not None:
+        (start, end) = re.search(r"^getconversation - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.getconversation
+        content = out_string[end:]
+    elif re.search(r"^conversation - ", out_string) is not None:
+        (start, end) = re.search(r"^conversation - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.conversation
         content = out_string[end:]
 
     else:

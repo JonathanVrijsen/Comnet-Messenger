@@ -168,8 +168,6 @@ class keyServer:
                 if password_correct:
                     sign = symmetricKeying.symmEncrypt(username.encode('ascii'), self.serverCommonKey)
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordcorrect, str(sign))
-                    out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
-                    connectionSocket.send(out)
 
                     newUser = User(connectedClient.user.username, password)
                     connectedClient.set_user(newUser)  # user set with password, client can obtain keys
@@ -184,7 +182,7 @@ class keyServer:
                 id = content
                 conversation_key = Fernet.generate_key()
 
-                self.conversationkeys[id]=conversation_key
+                self.conversationkeys[id] = conversation_key
 
                 print("KS sends conv symkey: ", str(conversation_key))
                 byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)

@@ -110,6 +110,7 @@ class Server:
                     print("USER RGISTERED AT MAIN SERVER:", username)
                     newUser = User(username)
                     self.knownUsers.add(newUser) #doesn't add if already in set
+
             elif byteStreamIn.messageType == ByteStreamType.requestallids:
                 username = connectedClient.user.username
                 first = True
@@ -218,6 +219,16 @@ class Server:
                 byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answermembers, total_string)
                 out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectedClient.connectionSocket.send(out)
+
+            elif byteStreamIn.messageType == ByteStreamType.getconversation:
+                id = byteStreamIn.content
+                for conv in self.conversations:
+                    if id == conv.id:
+                        encoded_conversation = conv.encode_conversation()
+                        byteStreamOut = ByteStream(ByteStreamType.conversation, encoded_conversation)
+                        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                        connectionSocket.send(out)
+                        break
 
     def listen_silently(self):
 
