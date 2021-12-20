@@ -230,10 +230,21 @@ class Client:
             id_array = byteStreamIn.content
             ids = id_array.split(" - ")
             print("CLIENT RECEIVED IDS:", ids)
-
         self.conversations.clear()
+        all_conversation_members = []
         for id in ids:
             conversation = self.get_one_conversation(id)
+            members = conversation.members
+
+            first = True
+            for member in members:
+                if member != self.user.username:
+                    if first:
+                        conversation_members = member
+                        first = first and (not first) or not first
+                    else:
+                        conversation_members = conversation_members + ", " + member
+
             self.conversations.append(conversation)
             print("CONVERSATION FOUND")
             print("debugger")
