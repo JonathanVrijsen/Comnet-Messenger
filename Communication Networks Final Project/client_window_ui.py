@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(584, 530)
+        Form.resize(551, 407)
         self.gridLayout = QtWidgets.QGridLayout(Form)
         self.gridLayout.setObjectName("gridLayout")
         self.stackedWidget = QtWidgets.QStackedWidget(Form)
@@ -63,6 +63,22 @@ class Ui_Form(object):
         self.H_LoginButton = QtWidgets.QPushButton(self.page)
         self.H_LoginButton.setObjectName("H_LoginButton")
         self.verticalLayout.addWidget(self.H_LoginButton)
+        self.H_LogErrorTextBox = QtWidgets.QLabel(self.page)
+        palette = QtGui.QPalette()
+        brush = QtGui.QBrush(QtGui.QColor(255, 0, 0))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 0, 0))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(120, 120, 120))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
+        self.H_LogErrorTextBox.setPalette(palette)
+        self.H_LogErrorTextBox.setText("")
+        self.H_LogErrorTextBox.setAlignment(QtCore.Qt.AlignCenter)
+        self.H_LogErrorTextBox.setObjectName("H_LogErrorTextBox")
+        self.verticalLayout.addWidget(self.H_LogErrorTextBox)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.label_3 = QtWidgets.QLabel(self.page)
@@ -179,7 +195,7 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.stackedWidget, 1, 0, 1, 1)
 
         self.retranslateUi(Form)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):

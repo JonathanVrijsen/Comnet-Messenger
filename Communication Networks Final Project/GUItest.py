@@ -80,9 +80,13 @@ class ClientWindow(QWidget, Ui_Form):
         print(successful)
 
         if successful:
+            self.H_LogErrorTextBox.clear()
             self.stackedWidget.setCurrentWidget(self.page_2)
             tile = "User: " + self.username
             self.setWindowTitle(tile)
+
+        else:
+            self.H_LogErrorTextBox.setText("Wrong username or password")
 
     def logout(self):
         self.stackedWidget.setCurrentWidget(self.page)
