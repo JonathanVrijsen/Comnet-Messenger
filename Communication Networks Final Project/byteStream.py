@@ -19,7 +19,7 @@ def constructor_info(message_type, content):
     elif message_type == byteStreamType.ByteStreamType.passwordanswer:
         out_string = "passwordanswer - " + content  # content = "password"
     elif message_type == byteStreamType.ByteStreamType.loginanswer:
-        out_string = "registeranswer - " + content # content = "succes/failed"
+        out_string = "loginanswer - " + content # content = "succes/failed"
     elif message_type == byteStreamType.ByteStreamType.contactrequest:
         out_string = "contactrequest" # content = \
     elif message_type == byteStreamType.ByteStreamType.contactanswer:
@@ -30,6 +30,10 @@ def constructor_info(message_type, content):
         out_string = "pubkeyanswer - " + str(content)  # content = public key of sender
     elif message_type == byteStreamType.ByteStreamType.symkeyanswer:
         out_string = "symkeyanswer - " + str(content)  # content = sym key of sender
+    elif message_type == byteStreamType.ByteStreamType.passwordcorrect:
+        out_string = "passwordcorrect" # content = \
+    elif message_type == byteStreamType.ByteStreamType.passwordwrong:
+        out_string = "passwordwrong" # content = \
 
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
@@ -53,7 +57,7 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^registerrequest - [\S]{1,20} - [\S]{1,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registerrequest
         content = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).group()
-    elif re.search(r"^loginrequest - [\S]{1,20} - [\S]{1,20}$", out_string) is not None:
+    elif re.search(r"^loginrequest - [\S]{1,20}$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
         content = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).group()
     elif re.search(r"^registeranswer - [\S]{1,20}$", out_string) is not None:
@@ -90,6 +94,13 @@ def extract_from_byte_string(out_string):
         (start, end) = re.search(r"^symkeyanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.symkeyanswer
         content = out_string[end:]
+    elif re.search(r"^passwordcorrect$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.passwordcorrect
+        content = ""
+    elif re.search(r"^passwordwrong$", out_string) is not None:
+        message_type = byteStreamType.ByteStreamType.passwordwrong
+        content = ""
+
     else:
         raise CustomError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type

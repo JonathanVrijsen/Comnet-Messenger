@@ -12,4 +12,6 @@ class ByteStreamType(enum.Enum):
     keyrequest = 10
     pubkeyanswer = 11
     symkeyanswer = 12
+    passwordwrong = 13
+    passwordcorrect = 14
     # TODO add

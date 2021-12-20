@@ -9,6 +9,7 @@ from byteStreamType import *
 from cryptography.fernet import Fernet
 from byteStream import *
 from server import ConnectedClient
+from user import User
 
 
 class keyServer:
@@ -105,6 +106,7 @@ class keyServer:
             rcvd = connectionSocket.recv(1024)
             print("RECEIVED")
             rcvd = symmetricKeying.symmDecrypt(rcvd, connectedClient.symKey)
+            print(rcvd)
             byteStreamIn = ByteStream(rcvd)
             type = byteStreamIn.messageType
             content = byteStreamIn.content
@@ -120,60 +122,48 @@ class keyServer:
                     self.database.append((username, password))
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
 
-                #            username_already_used = False
-                #            (username, password) = msg_content.split(' - ', 1)
-                # for name_pw_pair in self.username_password_pairs:
-                #    if name_pw_pair[0] == username:
-                #        username_already_used = True
-                #        print("balls")
-
-                # answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
-
-                #            if (not username_already_used):
-                #                self.username_password_pairs.append((username, password))
-                #                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
                 out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
             elif type == ByteStreamType.loginrequest:
                 user_exists = False
                 username = content
-                for name_pw_pair in self.username_password_pairs:
+                for name_pw_pair in self.database:
                     if name_pw_pair[0] == username:
                         # the user exist
                         user_exists = True
 
                 if user_exists:
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "send password")
-                    connectionSocket.send(answer_bs.outStream)
-                    # connectionSocket not closed to receive password
-                    self.connectionSockets.append((connectionSocket, username))
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "sendpassword")
+                    newUser = User(username)
+                    connectedClient.set_user(newUser) #notice: password not yet given, so client isn't able yet to receive keys
+
                 else:
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
-                    connectionSocket.send(answer_bs.outStream)
-                    connectionSocket.close()  # user non existent => login abort
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "usernonexistent")
+                out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                connectionSocket.send(out)
 
             elif type == ByteStreamType.passwordanswer:
                 password = content
                 password_correct = False
-                username = self.connectionSockets[connectionSocket]
-                if self.check_existence_of_account(username):
-                    if self.get_password(username) == password:
-                        print("password correct!!")
-                    password_correct = True
+                user = connectedClient.user
+                username = user.username
+
+                for temp in self.database:
+                    if temp[0] == username and password == temp[1]:
+                        password_correct = True
+                        break
 
                 if password_correct:
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordcorrect")
-                    connectionSocket.send(answer_bs.outStream)
-                    # Close and remove connectionSocket
-                    del self.connectionSockets[connectionSocket]
-                    connectionSocket.close()
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordcorrect, "")
+                    newUser = User(connectedClient.user.username, password)
+                    connectedClient.set_user(newUser) #user set with password, client can obtain keys
                 else:
                     print("password incorrect!!")
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordwrong")
-                    connectionSocket.send(answer_bs.outStream)
-                    # Close and remove connectionSocket
-                    del self.connectionSockets[connectionSocket]
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordwrong, "")
+
+                out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                connectionSocket.send(out)
 
         # step: decode message using private key and
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already

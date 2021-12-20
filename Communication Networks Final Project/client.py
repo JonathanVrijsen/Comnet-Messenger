@@ -17,9 +17,6 @@ class Client:
     key_server_socket = None
     conversations = None
 
-    mainSymKey = None
-    keySymKey = None
-
     def __init__(self):
         self.own_ip = "127.0.0.1"
         (self.pubKey, self.privKey) = generateKeys()
@@ -47,34 +44,37 @@ class Client:
     def login(self, username, password):
         # send username and password to keyserver
         # if login successful, set current user of client and get conversations from server
-        self.clientToKeySocket = socket(AF_INET, SOCK_STREAM)
-        self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
 
         login_bs = ByteStream(ByteStreamType.loginrequest, username)
-        self.clientToKeySocket.send(login_bs.outStream)
-        login_ans_bytes = self.clientToKeySocket.recv(1024)
-        login_ans_bs = ByteStream(login_ans_bytes)
-        login_ans = login_ans_bs.content
-        if login_ans == "sendpassword":
-            # send password
+        out = symmetricKeying.symmEncrypt(login_bs.outStream, self.Keyserver_symkey)
+        self.clientToKeySocket.send(out)
 
+        msg = self.clientToKeySocket.recv(1024)
+        msg = symmetricKeying.symmDecrypt(msg, self.Keyserver_symkey)
+        print(msg)
+        login_ans_bs = ByteStream(msg)
+        ans_type = login_ans_bs.messageType
+
+        if ans_type == ByteStreamType.passwordrequest:
+            # send password
             password_bs = ByteStream(ByteStreamType.passwordanswer, password)
-            self.clientToKeySocket.send(password_bs.outStream)
-            password_ans_bytes = self.clientToKeySocket.recv(1024)
-            password_ans_bs = ByteStream(password_ans_bytes)
-            password_ans = password_ans_bs.content
-            print(password_ans)
-            if password_ans == "passwordcorrec":  # something wrong with regex
-                print("password correct")
-                self.user = User(username, password)
-                self.get_conversations()
-                self.clientToKeySocket.close()
-                return True
-            else:
-                self.user = None
-                self.clientToKeySocket.close()
-                return False
-        else:
+            out = symmetricKeying.symmEncrypt(password_bs.outStream, self.Keyserver_symkey)
+            self.clientToKeySocket.send(out)
+        elif ans_type == ByteStreamType.passwordcorrect:
+            print("password correct")
+        elif ans_type == ByteStreamType.passwordwrong:
+            print("password wrong")
+            # if password_ans == "passwordcorrec":  # something wrong with regex
+            #     print("password correct")
+            #     self.user = User(username, password)
+            #     self.get_conversations()
+            #     self.clientToKeySocket.close()
+            #     return True
+            # else:
+            #     self.user = None
+            #     self.clientToKeySocket.close()
+            #     return False
+        elif ans_type == ByteStreamType.loginanswer:
             self.user = None
             self.clientToKeySocket.close()
             return False
