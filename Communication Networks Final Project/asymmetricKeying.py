@@ -1,3 +1,5 @@
+from base64 import b64decode
+
 import rsa
 
 
@@ -49,7 +51,8 @@ def rsa_receive(cipher_msg, pubKeySender, privKeyReceiver):
 def string_to_pubkey(pubkeystr):
     f, l = pubkeystr.split('(')
     n, e = l.split(',')
-    e = e[1:len(e) - 1]
-    return rsa.PublicKey(int(n), int(e))
+    e = e[1:len(e)]
+    pubKey = rsa.PublicKey(int(n), int(e))
+    return pubKey
 
 

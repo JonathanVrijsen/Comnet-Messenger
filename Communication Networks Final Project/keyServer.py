@@ -4,9 +4,11 @@ from math import floor
 from random import getrandbits
 from socket import *
 import asymmetricKeying
+import symmetricKeying
 from byteStreamType import *
 from cryptography.fernet import Fernet
 from byteStream import *
+from server import ConnectedClient
 
 
 class keyServer:
@@ -38,7 +40,7 @@ class keyServer:
 
         self.currentThreads = []
         self.connectedClients = []
-        self.connectionSockets = []  # some sockets need to remain active for a while
+
         self.username_password_pairs = []  # already registered users
         self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
@@ -66,15 +68,19 @@ class keyServer:
         print(newSymKey)
         msg_bs = ByteStream(ByteStreamType.symkeyanswer, newSymKey)
         msg = asymmetricKeying.rsa_sendable(msg_bs.outStream, self.privKey, clientPubKey)
-        connectionSocket.send(byteStreamOut.outStream)
+        print("KS sends symkey, encrypted")
+        print(msg)
+        connectionSocket.send(msg)
 
-        #newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
-        #self.connectedClients.append(newConnectedClient)
+        #create new connected client
+        newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
+        self.connectedClients.append(newConnectedClient)
+
 
         # launch new thread dedicated to connectedClient
-        #newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient, None))
-        #self.currentThreads.append(newThread)
-        #newThread.start()
+        newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient,))
+        self.currentThreads.append(newThread)
+        newThread.start()
 
 
 
@@ -91,6 +97,87 @@ class keyServer:
             print(rcvdContent)
             self.handle_message(rcvdContent, connectionSocket)
 
+    def connected_user_listen(self, connectedClient):
+        while connectedClient.active:
+            connectionSocket = connectedClient.connectionSocket
+            rcvd = connectionSocket.recv(1024)
+            rcvd = symmetricKeying.symmDecrypt(rcvd, connectedClient.symKey)
+            byteStreamIn = ByteStream(rcvd)
+            type = byteStreamIn.messageType
+            content = byteStreamIn.content
+
+            if type == ByteStreamType.registerrequest:
+                (username, password) = content.split(' - ', 1)
+                if self.check_existense_of_account(username):
+                    raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
+                else:
+                    self.add_user(username, password)
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
+
+                #            username_already_used = False
+                #            (username, password) = msg_content.split(' - ', 1)
+                # for name_pw_pair in self.username_password_pairs:
+                #    if name_pw_pair[0] == username:
+                #        username_already_used = True
+                #        print("balls")
+
+                # answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
+
+                #            if (not username_already_used):
+                #                self.username_password_pairs.append((username, password))
+                #                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
+                answer_bs = symmetricKeying.symmEncrypt(answer_bs, connectedClient.symKey)
+                connectionSocket.send(answer_bs.outStream)
+
+            if type == ByteStreamType.loginrequest:
+                user_exists = False
+                username = content
+                for name_pw_pair in self.username_password_pairs:
+                    if name_pw_pair[0] == username:
+                        # the user exist
+                        user_exists = True
+
+                if user_exists:
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "send password")
+                    connectionSocket.send(answer_bs.outStream)
+                    # connectionSocket not closed to receive password
+                    self.connectionSockets.append((connectionSocket, username))
+                else:
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
+                    connectionSocket.send(answer_bs.outStream)
+                    connectionSocket.close()  # user non existent => login abort
+
+            if msg_type == ByteStreamType.passwordanswer:
+                password = msg_content
+                password_correct = False
+                username = self.connectionSockets[connectionSocket]
+                if self.check_existence_of_account(username):
+                    if self.get_password(username) == password:
+                        print("password correct!!")
+                    password_correct = True
+
+            if password_correct:
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordcorrect")
+                    connectionSocket.send(answer_bs.outStream)
+                    # Close and remove connectionSocket
+                    del self.connectionSockets[connectionSocket]
+                    connectionSocket.close()
+                else:
+                    print("password incorrect!!")
+                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordwrong")
+                    connectionSocket.send(answer_bs.outStream)
+                    # Close and remove connectionSocket
+                    del self.connectionSockets[connectionSocket]
+                    connectionSocket.close()
+
+        # step: if request for public key, send it
+        if msg_type == ByteStreamType.publickeyrequest:
+            answer_bs = ByteStream(byteStreamType.ByteStreamType.publickey)
+
+        # step: decode message using private key and
+        # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
+        # if allright, create public and private key and send to receiver over temporary secure channel
+        # step: if login request, check combo and send to receiver over temporary secure channel
     def create_conversation(self):
         id = getrandbits(32)
 
@@ -105,101 +192,6 @@ class keyServer:
                     break
         newSymKey = Fernet.generate_key()
         self.conversationKeys.append(id, newSymKey)
-
-    def handle_message(self, rcvdContent, connectionSocket):
-        msg_bs = ByteStream(rcvdContent)
-        msg_type = msg_bs.messageType
-        msg_content = msg_bs.content
-
-        if msg_type == ByteStreamType.registerrequest:
-            (username, password) = msg_content.split(' - ', 1)
-            if self.check_existence_of_account(username):
-                raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
-            else:
-                self.add_user(username, password)
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
-            connectionSocket.send(answer_bs.outStream)
-            connectionSocket.close()
-
-#            username_already_used = False
-#            (username, password) = msg_content.split(' - ', 1)
-            #for name_pw_pair in self.username_password_pairs:
-            #    if name_pw_pair[0] == username:
-            #        username_already_used = True
-            #        print("balls")
-
-                    #answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
-
-#            if (not username_already_used):
-#                self.username_password_pairs.append((username, password))
-#                answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
-
-        if msg_type == ByteStreamType.loginrequest:
-            username = msg_content
-            if not self.check_existence_of_account(username):
-                print("username non existent!")
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "usernonexistent")
-                connectionSocket.send(answer_bs.outStream)
-                connectionSocket.close()  # user non existent => login abort
-                raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
-            else:
-                print("username exists!")
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "sendpassword")
-                print(answer_bs)
-                connectionSocket.send(answer_bs.outStream)
-                # connectionSocket not closed to receive password
-                self.connectionSockets[connectionSocket] = username
-                # self.connectionSockets.append((connectionSocket, username))
-                self.listen_for_password(connectionSocket)
-                
-#            user_exists = False
-#            username = msg_content
-#            for name_pw_pair in self.username_password_pairs:
-#                if name_pw_pair[0] == username:
-                    # the user exist
-#                   user_exists = True
-
-            #if user_exists:
-            ##    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "send password")
-            #    connectionSocket.send(answer_bs.outStream)
-                # connectionSocket not closed to receive password
-#           else:
-#                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "user non existent")
-#                connectionSocket.send(answer_bs.outStream)
-#                connectionSocket.close()  # user non existent => login abort
-
-        if msg_type == ByteStreamType.passwordanswer:
-            password = msg_content
-            password_correct = False
-            username = self.connectionSockets[connectionSocket]
-            if self.check_existence_of_account(username):
-                if self.get_password(username) == password:
-                    print("password correct!!")
-                    password_correct = True
-
-            if password_correct:
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordcorrect")
-                connectionSocket.send(answer_bs.outStream)
-                # Close and remove connectionSocket
-                del self.connectionSockets[connectionSocket]
-                connectionSocket.close()
-            else:
-                print("password incorrect!!")
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordwrong")
-                connectionSocket.send(answer_bs.outStream)
-                # Close and remove connectionSocket
-                del self.connectionSockets[connectionSocket]
-                connectionSocket.close()
-
-        # step: if request for public key, send it
-        if msg_type == ByteStreamType.publickeyrequest:
-            answer_bs = ByteStream(byteStreamType.ByteStreamType.publickey)
-
-        # step: decode message using private key and
-        # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
-        # if allright, create public and private key and send to receiver over temporary secure channel
-        # step: if login request, check combo and send to receiver over temporary secure channel
 
     def getUsers(self):
         return self.database

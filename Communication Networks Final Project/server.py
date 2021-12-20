@@ -81,7 +81,6 @@ class Server:
         while(connectedClient.active):
             connectionSocket = connectedClient.connectionSocket
 
-            self.connectionSocket.listen(16)
             rcvdContent = self.connectionSocket.recv(1024)
             byteStreamIn = ByteStream(rcvdContent)
 
