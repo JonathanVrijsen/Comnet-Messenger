@@ -85,6 +85,7 @@ class Client:
             self.user = None
             return False
 
+
     def register(self, username, password1, password2, password3):
 
         if password1 != password2 or password1 != password3:
