@@ -2,6 +2,11 @@ import hashlib
 
 from cryptography.fernet import Fernet
 
+def hashString(input_string):
+    pb = bytes(input_string, 'utf-8')
+    hash = hashlib.sha1(pb)
+    return hash.hexdigest()
+
 def symmEncrypt(msg, key):
     cipher = Fernet(key)
     return cipher.encrypt(msg)

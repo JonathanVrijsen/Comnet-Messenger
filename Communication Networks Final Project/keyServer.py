@@ -49,6 +49,7 @@ class keyServer:
         self.serverCommonKey = fkey.read()
 
         self.database = []
+        self.conversationkeys = dict()
 
     def listen(self):
         self.serverSocket.listen(64)
@@ -175,24 +176,30 @@ class keyServer:
                 out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
+            elif type == ByteStreamType.newconversation:
+                id = content
+                conversation_key = Fernet.generate_key()
+
+                self.conversationkeys[id]=conversation_key
+
+                byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
+                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                connectedClient.connectionSocket.send(out)
+
+            elif type == ByteStreamType.requestconversationkey:
+                ##TODO verify user
+                id = content
+                conversation_key = self.conversationKeys[id]
+
+                byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
+                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                connectedClient.connectionSocket.send(out)
+
+
         # step: decode message using private key and
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
         # if allright, create public and private key and send to receiver over temporary secure channel
         # step: if login request, check combo and send to receiver over temporary secure channel
-    def create_conversation(self):
-        id = getrandbits(32)
-
-        # check if id doesn't exist already
-        passed = False
-        while not passed:
-            passed = True
-            for i in range(len(self.conversationKeys)):
-                if id == self.conversationKeys(i):
-                    passed = False
-                    id = getrandbits(32)
-                    break
-        newSymKey = Fernet.generate_key()
-        self.conversationKeys.append(id, newSymKey)
 
     def getUsers(self):
         return self.database

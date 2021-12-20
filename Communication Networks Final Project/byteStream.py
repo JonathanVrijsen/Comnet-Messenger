@@ -36,7 +36,16 @@ def constructor_info(message_type, content):
         out_string = "passwordwrong" # content = \
     elif message_type == byteStreamType.ByteStreamType.registertomain:
         out_string = "registertomain - " + content # content = list of usernames
-
+    elif message_type == byteStreamType.ByteStreamType.newconversation:
+        out_string = "newconversation - " +content #content is list of members
+    elif message_type == byteStreamType.ByteStreamType.message:
+        out_string = "message - " + content #content id (len(id) is 40) - message
+    elif message_type == byteStreamType.ByteStreamType.requestconversationkey:
+        out_string = "requestconversationkey - " + content
+    elif message_type == byteStreamType.ByteStreamType.requestmembers:
+        out_string = "requestmembers - " + content
+    elif message_type == byteStreamType.ByteStreamType.answermembers:
+        out_string = "answermembers - " + content
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = out_string.encode("utf-8")
@@ -109,6 +118,26 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^registertomain - ", out_string) is not None:
         (start, end) = re.search(r"^registertomain - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.registertomain
+        content = out_string[end:]
+    elif re.search(r"^newconversation - ", out_string) is not None:
+        (start, end) = re.search(r"^newconversation - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.newconversation
+        content = out_string[end:]
+    elif re.search(r"^message - ", out_string) is not None:
+        (start, end) = re.search(r"^message - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.message
+        content = out_string[end:]
+    elif re.search(r"^requestconversationkey - ", out_string) is not None:
+        (start, end) = re.search(r"^requestconversationkey - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.requestconversationkey
+        content = out_string[end:]
+    elif re.search(r"^requestmembers - ", out_string) is not None:
+        (start, end) = re.search(r"^requestmembers - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.requestmembers
+        content = out_string[end:]
+    elif re.search(r"^answermembers - ", out_string) is not None:
+        (start, end) = re.search(r"^answermembers - ", out_string).span()
+        message_type = byteStreamType.ByteStreamType.answermembers
         content = out_string[end:]
 
     else:

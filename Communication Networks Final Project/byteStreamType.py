@@ -15,4 +15,9 @@ class ByteStreamType(enum.Enum):
     passwordwrong = 13
     passwordcorrect = 14
     registertomain = 15
-    # TODO add
+    newconversation = 16
+    message = 17
+    requestconversationkey = 18
+    requestmembers = 19
+    answermembers = 20
+    # TODO add (pls stop)
