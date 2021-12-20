@@ -4,7 +4,7 @@ import time
 
 import asymmetricKeying
 import byteStreamType
-import conversation
+from conversation import *
 import symmetricKeying
 from asymmetricKeying import *
 from message import Message
@@ -14,6 +14,7 @@ from RegErrorTypes import *
 from byteStream import *
 from byteStreamType import *
 from cryptography.fernet import Fernet
+import time
 
 def hashString(input_string):
     pb = bytes(input_string, 'utf-8')
@@ -46,6 +47,7 @@ class Client:
         self.Keyserver_symkey = ""
 
         self.currentThreads = []
+        self.all_conversation_members = []
 
         self.first_message_to_keyserver()
         self.first_message_to_server()
@@ -96,6 +98,7 @@ class Client:
 
 
 
+
                 listen_thread = threading.Thread(target = self.listen_to_mainserver)
                 listen_thread.start()
                 self.currentThreads.append(listen_thread)
@@ -110,68 +113,91 @@ class Client:
         return False
 
     def listen_to_mainserver(self):
-        rcvd = self.clientToMainSocket.recv(1024)
-        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
-        byteStreamIn = ByteStream(rcvd)
-        rcvdContent = byteStreamIn.content
-        print("received at start ",rcvdContent)
-        type = byteStreamIn.messageType
+        while True:
+            rcvd = self.clientToMainSocket.recv(1024)
+            rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
+            byteStreamIn = ByteStream(rcvd)
+            rcvdContent = byteStreamIn.content
+            print("received at start ",rcvdContent)
+            type = byteStreamIn.messageType
 
-        if type == byteStreamType.ByteStreamType.message:
-            id = rcvdContent[:40]
-            othercontent = rcvdContent[43:]
-            (sendername, msg) = othercontent.split(" - ", 1)
+            if type == byteStreamType.ByteStreamType.message:
+                id = rcvdContent[:40]
+                othercontent = rcvdContent[43:]
+                (sendername, msg) = othercontent.split(" - ", 1)
 
-            print("CL gets message:" , msg)
+                print("CL gets message:" , msg)
 
-            if not(id in self.knownconversationkeys):
-                # ask for key at key server
-                byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestconversationkey, id)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Keyserver_symkey)
-                self.clientToKeySocket.send(out)
+                if not(id in self.knownconversationkeys):
+                    # ask for key at key server
+                    byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestconversationkey, id)
+                    out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Keyserver_symkey)
+                    self.clientToKeySocket.send(out)
 
-                rcvd = self.clientToKeySocket.recv(1024)
-                rcvd = symmetricKeying.symmDecrypt(rcvd, self.Keyserver_symkey)
-                byteStreamIn = ByteStream(rcvd)
-                if byteStreamIn.messageType == byteStreamType.ByteStreamType.symkeyanswer:
-                    content = byteStreamIn.content
-                    conversation_key = symmetricKeying.strToSymkey(content)
-                    self.knownconversationkeys[id] = conversation_key
-
-                    byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestmembers, id)
-                    out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
-                    self.clientToMainSocket.send(out)
-
-                    rcvd = self.clientToMainSocket.recv(1024)
-                    rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
+                    rcvd = self.clientToKeySocket.recv(1024)
+                    rcvd = symmetricKeying.symmDecrypt(rcvd, self.Keyserver_symkey)
                     byteStreamIn = ByteStream(rcvd)
+                    if byteStreamIn.messageType == byteStreamType.ByteStreamType.symkeyanswer:
+                        content = byteStreamIn.content
+                        conversation_key = symmetricKeying.strToSymkey(content)
+                        self.knownconversationkeys[id] = conversation_key
 
-                    if byteStreamIn.messageType == byteStreamType.ByteStreamType.answermembers:
-                        members = byteStreamIn.content
-                        members = members.split(" - ")
-                        newconversation = conversation.Conversation(members, id)
-                        self.conversations.append(newconversation)
+                        byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestmembers, id)
+                        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+                        self.clientToMainSocket.send(out)
 
 
-            for conv in self.conversations:
-                if id == conv.id:
-                    members = conv.members
-                    sendernameismmember = False
-                    for m in members:
-                        membername = m
-                        if sendername == membername:
-                            sendernameismmember = True
-                            sender = m
+                        rcvd = self.clientToMainSocket.recv(1024)
+                        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
+                        byteStreamIn = ByteStream(rcvd)
 
-                    if sendernameismmember:
-                        message = Message(User(sender), msg)
-                        conv.add_message(message)
-                    break
+                        if byteStreamIn.messageType == byteStreamType.ByteStreamType.answermembers:
+                            members = byteStreamIn.content
+                            members = members.split(" - ")
+                            newconversation = Conversation(members, id)
+                            self.conversations.append(newconversation)
 
-        if byteStreamIn.messageType == ByteStreamType.contactanswer:
-            self.contacts = byteStreamIn.content.split(" - ")
-            print("recieved: ", self.contacts)
-            #TODO add message to conversation
+
+                for conv in self.conversations:
+                    if id == conv.id:
+                        members = conv.members
+                        sendernameismmember = False
+                        for m in members:
+                            membername = m
+                            if sendername == membername:
+                                sendernameismmember = True
+                                sender = m
+
+                        if sendernameismmember:
+                            message = Message(User(sender), msg)
+                            conv.add_message(message)
+                        break
+
+            if byteStreamIn.messageType == ByteStreamType.contactanswer:
+                self.contacts = byteStreamIn.content.split(" - ")
+                print("recieved: ", self.contacts)
+                #TODO add message to conversation
+
+            if byteStreamIn.messageType == byteStreamType.ByteStreamType.answerallids:
+                id_array = byteStreamIn.content
+                ids = id_array.split(" - ")
+                print("CLIENT RECEIVED IDS:", ids)
+                self.conversations.clear()
+                self.all_conversation_members.clear()
+                for id in ids:
+                    conversation = self.get_one_conversation(id)
+                    members = conversation.members
+
+                    first = True
+                    for member in members:
+                        if member != self.user.username:
+                            if first:
+                                conversation_members = member
+                                first = first and (not first) or not first
+                            else:
+                                conversation_members = conversation_members + ", " + member
+                    self.all_conversation_members.append(conversation_members)
+                    self.conversations.append(conversation)
 
 
 
@@ -223,31 +249,9 @@ class Client:
         out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
         self.clientToMainSocket.send(out)
 
-        rcvd = self.clientToMainSocket.recv(1024)
-        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
-        byteStreamIn = ByteStream(rcvd)
-        if byteStreamIn.messageType == byteStreamType.ByteStreamType.answerallids:
-            id_array = byteStreamIn.content
-            ids = id_array.split(" - ")
-            print("CLIENT RECEIVED IDS:", ids)
-        self.conversations.clear()
-        all_conversation_members = []
-        for id in ids:
-            conversation = self.get_one_conversation(id)
-            members = conversation.members
+        time.sleep(0.5)
 
-            first = True
-            for member in members:
-                if member != self.user.username:
-                    if first:
-                        conversation_members = member
-                        first = first and (not first) or not first
-                    else:
-                        conversation_members = conversation_members + ", " + member
-            all_conversation_members.append(conversation_members)
-            self.conversations.append(conversation)
-
-        return all_conversation_members
+        return self.all_conversation_members
 
     def get_one_conversation(self, id):
         byteStreamOut = ByteStream(byteStreamType.ByteStreamType.getconversation, id)
@@ -259,7 +263,7 @@ class Client:
         byteStreamIn = ByteStream(rcvd)
         if byteStreamIn.messageType == ByteStreamType.conversation:
             encoded_conversation = byteStreamIn.content
-            conv = conversation.Conversation(None, None)
+            conv = Conversation(None, None)
             conv.decode_conversation(encoded_conversation)
             return conv
 
@@ -351,7 +355,7 @@ class Client:
     def start_conversation(self, contact_usernames):
         #contacts = self.get_contacts()
 
-        print(self.user.username)
+        print("starting conv")
         contact_usernames.append(self.user.username)
         contact_usernames = sorted(contact_usernames)
         first = True
