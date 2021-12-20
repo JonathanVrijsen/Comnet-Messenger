@@ -7,3 +7,7 @@ def symmEncrypt(msg, key):
 def symmDecrypt(msg, key):
     cipher = Fernet(key)
     return cipher.decrypt(msg)
+
+def strToSymkey(SymKeyStr):
+    SymKeyStr = SymKeyStr[2:len(SymKeyStr)-1]
+    return bytes(SymKeyStr, "utf-8")
