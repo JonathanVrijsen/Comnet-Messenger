@@ -45,6 +45,9 @@ class keyServer:
         self.username_password_pairs = []  # already registered users
         #self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
+        fkey = open("serverCommonKey.txt",'rb')
+        self.serverCommonKey = fkey.read()
+
         self.database = []
 
     def listen(self):
@@ -112,6 +115,8 @@ class keyServer:
             content = byteStreamIn.content
 
             if type == ByteStreamType.registerrequest:
+                print(type)
+                print(content)
                 (username, password) = content.split(' - ', 1)
                 if self.check_existense_of_account(username):
                     print("EXISTS")
@@ -119,8 +124,12 @@ class keyServer:
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
                 else:
                     print("DOES NOT EXIST")
+                    print(username)
+                    print(password)
                     self.database.append((username, password))
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "succes")
+                    sign = symmetricKeying.symmEncrypt(username.encode('ascii'), self.serverCommonKey)
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, str(sign))
+                    print("Encrypted Username:", str(sign))
 
                 out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
                 connectionSocket.send(out)

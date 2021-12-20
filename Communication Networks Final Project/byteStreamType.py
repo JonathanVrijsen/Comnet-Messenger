@@ -14,4 +14,5 @@ class ByteStreamType(enum.Enum):
     symkeyanswer = 12
     passwordwrong = 13
     passwordcorrect = 14
+    registertomain = 15
     # TODO add

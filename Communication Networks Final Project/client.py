@@ -22,6 +22,7 @@ class Client:
     key_server_ip = None
     key_server_socket = None
     conversations = None
+    encrypted_username = None
 
     def __init__(self):
         self.own_ip = "127.0.0.1"
@@ -40,6 +41,7 @@ class Client:
         self.Keyserver_symkey = ""
 
         self.first_message_to_keyserver()
+        self.first_message_to_server()
 
 
         #self.clientToKeySocket.send(reg_bs.outStream)
@@ -106,10 +108,14 @@ class Client:
                 ans_bs = ByteStream(ans_bytes)
                 ans = ans_bs.content
                 print(ans)
-                if ans == "succes":
+                if ans != "failed":
+                    self.encrypted_username = ans
+                    print("Received encrypted username:", str(ans))
                     return RegisterErrorType.NoError
                 else:
                     return RegisterErrorType.UsernameAlreadyInUse
+
+                #send register to main server: registertomain - username - encrypted_username
 
 
     def get_server_information(self):
@@ -127,7 +133,7 @@ class Client:
         print(self.pubKey)
         self.clientToMainSocket.send(outstream)
 
-        #wait until server repplies with symmetric key for connection
+        #wait until server repplies with own public key
         rcvd = self.clientToMainSocket.recv(1024)
 
         byteStreamIn = ByteStream(rcvd)
@@ -136,7 +142,7 @@ class Client:
             print("Cl receives KS pubkey:")
             print(self.Mainserver_pubkey)
 
-        rcvd = self.clientToKeySocket.recv(1024)
+        rcvd = self.clientToMainSocket.recv(1024)
         print("Cl receives symm key, encrypted")
         print(rcvd)
         rcvd = rsa_receive(rcvd, self.Mainserver_pubkey, self.privKey)
@@ -144,9 +150,10 @@ class Client:
         byteStreamIn = ByteStream(rcvd)
         print(byteStreamIn.messageType)
         if (byteStreamIn.messageType == ByteStreamType.symkeyanswer):
-            self.Keyserver_symkey = symmetricKeying.strToSymkey(byteStreamIn.content)
+            print(byteStreamIn.content)
+            self.Mainserver_symkey = symmetricKeying.strToSymkey(byteStreamIn.content)
             print("Cl decrypts symm key")
-            print(self.Keyserver_symkey)
+            print(self.Mainserver_symkey)
 
     def first_message_to_keyserver(self):
         byteStreamOut = ByteStream(ByteStreamType.keyrequest, self.pubKey)
@@ -155,7 +162,7 @@ class Client:
         print(self.pubKey)
         self.clientToKeySocket.send(outstream)
 
-        #wait until server repplies with symmetric key for connection
+        # wait until server repplies with own public key
         rcvd = self.clientToKeySocket.recv(1024)
 
         byteStreamIn = ByteStream(rcvd)

@@ -54,9 +54,10 @@ def extract_from_byte_string(out_string):
     if re.search(r"^publickeyrequest$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.publickeyrequest
         content = None
-    elif re.search(r"^registerrequest - [\S]{1,20} - ", out_string) is not None:
+    elif re.search(r"^registerrequest - [\S]{1,99} - ", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registerrequest
-        content = re.search(r"[\S]{1,20} - ", out_string).group()
+        (start, end) = re.search(r"registerrequest - ", out_string).span()
+        content = out_string[end:]
     elif re.search(r"^loginrequest - ", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
         (start, end) = re.search(r"^loginrequest - ", out_string).span()
