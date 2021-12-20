@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/Serverwindow.ui'
+# Form implementation generated from reading ui file 'Serverwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -14,17 +14,51 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ServerWind(object):
     def setupUi(self, ServerWind):
         ServerWind.setObjectName("ServerWind")
-        ServerWind.resize(673, 478)
+        ServerWind.resize(806, 539)
         self.gridLayout = QtWidgets.QGridLayout(ServerWind)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        self.S_DataTable = QtWidgets.QTableWidget(ServerWind)
-        self.S_DataTable.setObjectName("S_DataTable")
-        self.S_DataTable.setColumnCount(0)
-        self.S_DataTable.setRowCount(0)
-        self.verticalLayout.addWidget(self.S_DataTable)
-        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
+        self.S_RefreshButton = QtWidgets.QPushButton(ServerWind)
+        self.S_RefreshButton.setObjectName("S_RefreshButton")
+        self.verticalLayout.addWidget(self.S_RefreshButton)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.label_4 = QtWidgets.QLabel(ServerWind)
+        self.label_4.setObjectName("label_4")
+        self.verticalLayout_3.addWidget(self.label_4)
+        self.S_PrvtKeyLabel = QtWidgets.QLabel(ServerWind)
+        self.S_PrvtKeyLabel.setMaximumSize(QtCore.QSize(500, 16777215))
+        self.S_PrvtKeyLabel.setObjectName("S_PrvtKeyLabel")
+        self.verticalLayout_3.addWidget(self.S_PrvtKeyLabel)
+        self.horizontalLayout.addLayout(self.verticalLayout_3)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.label = QtWidgets.QLabel(ServerWind)
+        self.label.setObjectName("label")
+        self.verticalLayout_2.addWidget(self.label)
+        self.S_PblcKeyLabel = QtWidgets.QLabel(ServerWind)
+        self.S_PblcKeyLabel.setMaximumSize(QtCore.QSize(500, 16777215))
+        self.S_PblcKeyLabel.setObjectName("S_PblcKeyLabel")
+        self.verticalLayout_2.addWidget(self.S_PblcKeyLabel)
+        self.horizontalLayout.addLayout(self.verticalLayout_2)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 1)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.S_RegDataTable = QtWidgets.QTableWidget(ServerWind)
+        self.S_RegDataTable.setObjectName("S_RegDataTable")
+        self.S_RegDataTable.setColumnCount(0)
+        self.S_RegDataTable.setRowCount(0)
+        self.horizontalLayout_2.addWidget(self.S_RegDataTable)
+        self.S_ConnectDataTable = QtWidgets.QTableWidget(ServerWind)
+        self.S_ConnectDataTable.setObjectName("S_ConnectDataTable")
+        self.S_ConnectDataTable.setColumnCount(0)
+        self.S_ConnectDataTable.setRowCount(0)
+        self.horizontalLayout_2.addWidget(self.S_ConnectDataTable)
+        self.gridLayout.addLayout(self.horizontalLayout_2, 1, 1, 1, 1)
 
         self.retranslateUi(ServerWind)
         QtCore.QMetaObject.connectSlotsByName(ServerWind)
@@ -32,3 +66,8 @@ class Ui_ServerWind(object):
     def retranslateUi(self, ServerWind):
         _translate = QtCore.QCoreApplication.translate
         ServerWind.setWindowTitle(_translate("ServerWind", "Form"))
+        self.S_RefreshButton.setText(_translate("ServerWind", "Refresh"))
+        self.label_4.setText(_translate("ServerWind", "Private key:"))
+        self.S_PrvtKeyLabel.setText(_translate("ServerWind", "TextLabel"))
+        self.label.setText(_translate("ServerWind", "Public key:"))
+        self.S_PblcKeyLabel.setText(_translate("ServerWind", "TextLabel"))

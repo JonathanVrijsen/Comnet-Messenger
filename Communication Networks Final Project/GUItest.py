@@ -71,6 +71,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_CreateNewConvButton.clicked.connect(self.create_conversation)
         self.H_CC_BackButton.clicked.connect(self.exit_CC)
         self.H_CC_AddConvButton.clicked.connect(self.finalise_conversations)
+        self.H_RefreshConvsButton.clicked.connect(self.get_conversations)
 
         self.username = None
         # self.password = None
@@ -116,24 +117,21 @@ class ClientWindow(QWidget, Ui_Form):
         else:
             self.H_RegErrorTextBox.setText("Succes!")
 
-    def contact_clicked(self, contact):
-        contact = contact.data()
-        self.H_ConvList.clear()
-
-        if contact == "Louis": #voorbeeld hoe gesprek uit te beelden
-            msg1 = "hey"
-            msg = QListWidgetItem(msg1)
-            msg.setTextAlignment(Qt.AlignLeft)
-            self.H_ConvList.addItem(msg)
-
-            msg2 = "yow"
-            msg = QListWidgetItem(msg2)
-            msg.setTextAlignment(Qt.AlignRight)
-            self.H_ConvList.addItem(msg)
+    def contact_clicked(self):
+        pass
+        #TODO import conv and display on right side
 
     def send_msg(self):
         msg = self.H_MessageBox.text()
-        self.client.send_message(msg)
+        targets = self.H_ContactList.selectedItems()
+        if len(targets) != 0:
+            print(targets)
+            self.H_MsgErrorLabel.clear()
+            #TODO implement with client
+
+        else:
+            self.H_MsgErrorLabel.setText("No target was selected")
+        #self.client.send_message(msg)
 
     def create_conversation(self):
         self.stackedWidget_2.setCurrentWidget((self.CC_activated))
@@ -145,17 +143,25 @@ class ClientWindow(QWidget, Ui_Form):
 
     def finalise_conversations(self):
         targets = self.H_CC_AllUserList.selectedItems()
-        targets_str = []
-        for target in targets:
-            targets_str.append(target.data(0))
+        if len(targets) != 0:
+            targets_str = []
+            for target in targets:
+                targets_str.append(target.data(0))
 
-        print(targets_str)
+            print(targets_str)
+            self.H_CC_ErrorLabel.clear()
+            self.stackedWidget_2.setCurrentWidget((self.CC_standard))
+
+        else:
+            self.H_CC_ErrorLabel.setText("No partisipants were selected")
         #TODO create new conv in client with this list
-        self.stackedWidget_2.setCurrentWidget((self.CC_standard))
-
 
     def exit_CC(self):
         self.stackedWidget_2.setCurrentWidget((self.CC_standard))
+
+    def get_conversations(self):
+        pass
+        #TODO implement with client
 
     #def refresh_contacts(self):
         #self.contactList = self.client.request_contacts()
@@ -174,8 +180,12 @@ class ServerOverview(QWidget, Ui_ServerWind):
 
         self.MainServer = Server()
 
-        self.S_DataTable.setRowCount(10)
-        self.S_DataTable.setColumnCount(3)
+        self.S_PrvtKeyLabel.setText(str(self.MainServer.privKey))
+        self.S_PblcKeyLabel.setText(str(self.MainServer.pubKey))
+
+        self.S_RegDataTable.setRowCount(10)
+        self.S_RegDataTable.setColumnCount(3)
+        self.S_RegDataTable.setHorizontalHeaderLabels(("Username;Pasword;Symkey").split(";"))
 
         self.stop_thread = False
         self.listen_thread = Thread(target = self.server_listen)
@@ -202,8 +212,18 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
 
         self.KeyServer = keyServer()
 
-        self.S_DataTable.setRowCount(10)
-        self.S_DataTable.setColumnCount(3)
+        self.S_PrvtKeyLabel.setText(str(self.KeyServer.privKey))
+        self.S_PblcKeyLabel.setText(str(self.KeyServer.pubKey))
+
+        self.S_RegDataTable.setRowCount(10)
+        self.S_RegDataTable.setColumnCount(2)
+        self.S_RegDataTable.setHorizontalHeaderLabels(("Username;Pasword").split(";"))
+
+        self.S_ConnectDataTable.setRowCount(10)
+        self.S_ConnectDataTable.setColumnCount(2)
+        self.S_ConnectDataTable.setHorizontalHeaderLabels(("Username;Symkey").split(";"))
+
+        self.S_RefreshButton.clicked.connect(self.update_data)
 
         self.stop_thread = False
         self.listen_thread = Thread(target=self.server_listen)
@@ -214,13 +234,36 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
             self.KeyServer.listen()
             if self.stop_thread:
                 break
-            users = self.KeyServer.getUsers()
-            self.S_DataTable.clear()
-            i=0
-            for j in users:
-                self.S_DataTable.setItem(i, 0, QTableWidgetItem(j))
-                self.S_DataTable.setItem(i, 1, QTableWidgetItem(users[j][0]))
-                i=i+1
+             #users = self.KeyServer.getUsers()
+            #self.S_RegDataTable.clear()
+            #i=0
+            #for j in users:
+             #   self.S_RegDataTable.setItem(i, 0, QTableWidgetItem(j))
+              #  self.S_RegDataTable.setItem(i, 1, QTableWidgetItem(users[j][0]))
+               # i=i+1
+
+    def update_data(self):
+        regusers = self.KeyServer.getUsers()
+        print(regusers)
+
+        self.S_RegDataTable.clearContents()
+        i = 0
+        for user in regusers:
+            self.S_RegDataTable.setItem(i,0,QTableWidgetItem(user[0]))
+            self.S_RegDataTable.setItem(i, 1, QTableWidgetItem(user[1]))
+            i =i+1
+
+        conclients = self.KeyServer.getConnectedClients()
+
+        self.S_ConnectDataTable.clearContents()
+        i = 0
+        for conclient in conclients:
+            if conclient.user != None:
+                self.S_ConnectDataTable.setItem(i, 0, QTableWidgetItem(conclient.user.username))
+            else:
+                self.S_ConnectDataTable.setItem(i, 0, QTableWidgetItem("Unknown"))
+            self.S_ConnectDataTable.setItem(i, 1, QTableWidgetItem(str(conclient.symKey)))
+            i = i+1
 
     def closeEvent(self, event):
         self.stop_thread = True

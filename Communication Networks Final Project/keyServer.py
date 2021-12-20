@@ -197,6 +197,9 @@ class keyServer:
     def getUsers(self):
         return self.database
 
+    def getConnectedClients(self):
+        return self.connectedClients
+
     def listen_silently(self):
 
         self.serverSocket.listen(64)

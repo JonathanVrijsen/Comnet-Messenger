@@ -18,6 +18,7 @@ class ConnectedClient:
         self.pubKey = pubKey
         self.symKey = symKey
         self.active = True
+        self.user = None
 
     def set_user(self, newUser):
         self.user = newUser
