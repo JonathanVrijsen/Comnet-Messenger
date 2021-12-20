@@ -129,6 +129,7 @@ class keyServer:
                 user_exists = False
                 username = content
                 for name_pw_pair in self.database:
+                    print(self.database)
                     if name_pw_pair[0] == username:
                         # the user exist
                         user_exists = True

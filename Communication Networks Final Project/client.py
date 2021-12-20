@@ -60,23 +60,20 @@ class Client:
             password_bs = ByteStream(ByteStreamType.passwordanswer, password)
             out = symmetricKeying.symmEncrypt(password_bs.outStream, self.Keyserver_symkey)
             self.clientToKeySocket.send(out)
-        elif ans_type == ByteStreamType.passwordcorrect:
-            print("password correct")
-        elif ans_type == ByteStreamType.passwordwrong:
-            print("password wrong")
-            # if password_ans == "passwordcorrec":  # something wrong with regex
-            #     print("password correct")
-            #     self.user = User(username, password)
-            #     self.get_conversations()
-            #     self.clientToKeySocket.close()
-            #     return True
-            # else:
-            #     self.user = None
-            #     self.clientToKeySocket.close()
-            #     return False
+
+            msg = self.clientToKeySocket.recv(1024)
+            msg = symmetricKeying.symmDecrypt(msg, self.Keyserver_symkey)
+            print(msg)
+            password_ans_bs = ByteStream(msg)
+            ans_type=password_ans_bs.messageType
+            if ans_type == ByteStreamType.passwordcorrect:
+                print("password correct")
+            elif ans_type == ByteStreamType.passwordwrong:
+                print("password wrong")
+
         elif ans_type == ByteStreamType.loginanswer:
+            print("user non existent")
             self.user = None
-            self.clientToKeySocket.close()
             return False
 
     def register(self, username, password1, password2, password3):
