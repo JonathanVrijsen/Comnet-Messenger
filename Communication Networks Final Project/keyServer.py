@@ -129,7 +129,7 @@ class keyServer:
                 answer_bs = symmetricKeying.symmEncrypt(answer_bs, connectedClient.symKey)
                 connectionSocket.send(answer_bs.outStream)
 
-            if type == ByteStreamType.loginrequest:
+            elif type == ByteStreamType.loginrequest:
                 user_exists = False
                 username = content
                 for name_pw_pair in self.username_password_pairs:
@@ -147,8 +147,8 @@ class keyServer:
                     connectionSocket.send(answer_bs.outStream)
                     connectionSocket.close()  # user non existent => login abort
 
-            if msg_type == ByteStreamType.passwordanswer:
-                password = msg_content
+            elif type == ByteStreamType.passwordanswer:
+                password = content
                 password_correct = False
                 username = self.connectionSockets[connectionSocket]
                 if self.check_existence_of_account(username):
@@ -156,23 +156,18 @@ class keyServer:
                         print("password correct!!")
                     password_correct = True
 
-            if password_correct:
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordcorrect")
+                if password_correct:
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordcorrect")
                     connectionSocket.send(answer_bs.outStream)
                     # Close and remove connectionSocket
                     del self.connectionSockets[connectionSocket]
                     connectionSocket.close()
                 else:
                     print("password incorrect!!")
-                answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordwrong")
+                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "passwordwrong")
                     connectionSocket.send(answer_bs.outStream)
                     # Close and remove connectionSocket
                     del self.connectionSockets[connectionSocket]
-                    connectionSocket.close()
-
-        # step: if request for public key, send it
-        if msg_type == ByteStreamType.publickeyrequest:
-            answer_bs = ByteStream(byteStreamType.ByteStreamType.publickey)
 
         # step: decode message using private key and
         # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
