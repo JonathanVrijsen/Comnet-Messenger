@@ -54,29 +54,30 @@ def extract_from_byte_string(out_string):
     if re.search(r"^publickeyrequest$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.publickeyrequest
         content = None
-    elif re.search(r"^registerrequest - [\S]{1,20} - [\S]{1,20}$", out_string) is not None:
+    elif re.search(r"^registerrequest - [\S]{1,20} - ", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.registerrequest
-        content = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).group()
-    elif re.search(r"^loginrequest - [\S]{1,20}$", out_string) is not None:
+        content = re.search(r"[\S]{1,20} - ", out_string).group()
+    elif re.search(r"^loginrequest - ", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.loginrequest
-        (start, end) = re.search(r"[\S]{1,20} - [\S]{1,20}$", out_string).span()
+        (start, end) = re.search(r"^loginrequest - ", out_string).span()
+        print(start, end)
         content = out_string[end:]
-    elif re.search(r"^registeranswer - [\S]{1,20}$", out_string) is not None:
+    elif re.search(r"^registeranswer - ", out_string) is not None:
         (start, end) = re.search(r"^registeranswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.registeranswer
         content = out_string[end:]
-    elif re.search(r"^loginanswer - [\S]{1,20}$", out_string) is not None:
+    elif re.search(r"^loginanswer - ", out_string) is not None:
         (start, end) = re.search(r"^loginanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.loginanswer
-        content = out_string[end:-1]
-    elif re.search(r"^passwordrequest - [\S]{1,20}$", out_string) is not None:
+        content = out_string[end:]
+    elif re.search(r"^passwordrequest - ", out_string) is not None:
         (start, end) = re.search(r"^passwordrequest - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.passwordrequest
-        content = out_string[end:-1]
-    elif re.search(r"^passwordanswer - [\S]{1,20}$", out_string) is not None:
+        content = out_string[end:]
+    elif re.search(r"^passwordanswer - ", out_string) is not None:
         (start, end) = re.search(r"^passwordanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.passwordanswer
-        content = out_string[end:-1]
+        content = out_string[end:]
     elif re.search(r"^contactrequest$", out_string) is not None:
         message_type = byteStreamType.ByteStreamType.contactrequest
         content = ""
@@ -86,11 +87,11 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^keyrequest - ", out_string) is not None:
         (start, end) = re.search(r"^keyrequest - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.keyrequest
-        content = out_string[end:-1]
+        content = out_string[end:]
     elif re.search(r"^pubkeyanswer - ", out_string) is not None:
         (start, end) = re.search(r"^pubkeyanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.pubkeyanswer
-        content = out_string[end:-1]
+        content = out_string[end:]
     elif re.search(r"^symkeyanswer - ", out_string) is not None:
         (start, end) = re.search(r"^symkeyanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.symkeyanswer

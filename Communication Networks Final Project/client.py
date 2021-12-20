@@ -1,3 +1,5 @@
+import hashlib
+
 import asymmetricKeying
 import symmetricKeying
 from asymmetricKeying import *
@@ -8,6 +10,10 @@ from byteStream import *
 from byteStreamType import *
 from cryptography.fernet import Fernet
 
+def hashString(input_string):
+    pb = bytes(input_string, 'utf-8')
+    hash = hashlib.sha1(pb)
+    return hash.hexdigest()
 
 class Client:
     user = None
@@ -42,6 +48,7 @@ class Client:
         self.contacts = []
 
     def login(self, username, password):
+        password = hashString(password) #since only hashed version of password is transmitted
         # send username and password to keyserver
         # if login successful, set current user of client and get conversations from server
 
@@ -85,7 +92,8 @@ class Client:
         elif not password1:
             return RegisterErrorType.NoPassword
         else:
-            reg_bs = ByteStream(ByteStreamType.registerrequest, username + " - " + password1)
+            password_hash = hashString(password1)
+            reg_bs = ByteStream(ByteStreamType.registerrequest, username + " - " + password_hash)
 
             if (self.Keyserver_symkey != None):
                 print(self.Keyserver_symkey)

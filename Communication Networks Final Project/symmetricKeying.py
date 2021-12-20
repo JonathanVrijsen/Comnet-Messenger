@@ -1,3 +1,5 @@
+import hashlib
+
 from cryptography.fernet import Fernet
 
 def symmEncrypt(msg, key):
