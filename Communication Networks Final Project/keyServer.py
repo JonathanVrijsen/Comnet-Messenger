@@ -182,6 +182,7 @@ class keyServer:
 
                 self.conversationkeys[id]=conversation_key
 
+                print("KS sends conv symkey: ", str(conversation_key))
                 byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
                 out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectedClient.connectionSocket.send(out)
@@ -189,7 +190,7 @@ class keyServer:
             elif type == ByteStreamType.requestconversationkey:
                 ##TODO verify user
                 id = content
-                conversation_key = self.conversationKeys[id]
+                conversation_key = self.conversationkeys[id]
 
                 byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
                 out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)

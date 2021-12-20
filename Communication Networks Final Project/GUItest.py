@@ -16,6 +16,8 @@ from RegErrorTypes import *
 from server import *
 from keyServer import *
 
+import time
+
 
 class MainMenu(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -123,21 +125,25 @@ class ClientWindow(QWidget, Ui_Form):
 
     def send_msg(self):
         msg = self.H_MessageBox.text()
-        targets = self.H_ContactList.selectedItems()
-        if len(targets) != 0:
-            print(targets)
-            self.H_MsgErrorLabel.clear()
+        self.client.send_message("", msg)
+
+
+        #targets = self.H_ContactList.selectedItems()
+        #if len(targets) != 0:
+        #    print(targets)
+        #    self.H_MsgErrorLabel.clear()
             #TODO implement with client
 
-        else:
-            self.H_MsgErrorLabel.setText("No target was selected")
+        #else:
+        #    self.H_MsgErrorLabel.setText("No target was selected")
         #self.client.send_message(msg)
 
     def create_conversation(self):
         self.stackedWidget_2.setCurrentWidget((self.CC_activated))
         self.H_CC_AllUserList.clear()
-        allusers = self.client.request_contacts()
-
+        self.client.request_contacts()
+        time.sleep(0.5)
+        allusers = self.client.get_contacts()
         for user in allusers:
             self.H_CC_AllUserList.addItem(QListWidgetItem(user))
 
@@ -149,6 +155,7 @@ class ClientWindow(QWidget, Ui_Form):
                 targets_str.append(target.data(0))
 
             print(targets_str)
+            self.client.start_conversation(targets_str)
             self.H_CC_ErrorLabel.clear()
             self.stackedWidget_2.setCurrentWidget((self.CC_standard))
 

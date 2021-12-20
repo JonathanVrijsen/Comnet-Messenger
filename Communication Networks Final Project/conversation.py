@@ -6,6 +6,9 @@ class Conversation:
         self.members = members
         self.id = id
 
-    def add_message(self, content, sender):
-        message = Message(sender, content)
+    def add_message(self, message):
         self.messages.append(message)
+
+    def printmessages(self):
+        for message in self.messages:
+            print(message.content)
