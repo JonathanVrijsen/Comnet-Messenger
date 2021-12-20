@@ -27,12 +27,15 @@ def constructor_info(message_type, content):
 
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
-    out_stream = bytes(out_string, 'utf-8')
+    out_stream = out_string.encode("utf-8")
     return message_type, content, out_stream
 
 
 def constructor_bytestream(out_stream):
-    out_string = out_stream.decode("utf-8")
+    if not isinstance(out_stream, str): #if it is not a string
+        out_string = out_stream.decode("utf-8")
+    else:
+        out_string = out_stream
     content, message_type = extract_from_byte_string(out_string)
     return message_type, content, out_stream
 
@@ -80,7 +83,7 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^symkeyanswer - ", out_string) is not None:
         (start, end) = re.search(r"^symkeyanswer - ", out_string).span()
         message_type = byteStreamType.ByteStreamType.symkeyanswer
-        content = out_string[end:-1]
+        content = out_string[end:]
     else:
         raise CustomError(byteStreamErrorTypes.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type
