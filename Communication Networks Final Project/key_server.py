@@ -62,8 +62,10 @@ class KeyServer:
         broadcast_thread.start()
         self.current_threads.append(broadcast_thread)
 
+
+
     def broadcast_addr(self):
-        interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
+        interfaces = getaddrinfo(host=getghostname(), port=None, family=AF_INET)
         allips = [ip[-1][0] for ip in interfaces]
 
         msg = "KS_Addr" + ";;;" + self.server_ip + ";;;" + str(self.server_port)
@@ -157,7 +159,7 @@ class KeyServer:
 
     def connected_client_listen(self, connected_client):
         while connected_client.active:
-
+            connected_client_logged_in = False
             if self.stop_all_threads:
                 break
 
@@ -213,7 +215,7 @@ class KeyServer:
                 if password_correct:
                     sign = symm_encrypt(username.encode('ascii'), self.server_common_key)
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordcorrect, str(sign))
-
+                    connected_client_logged_in = True
                     new_user = User(connected_client.user.username, password)
                     connected_client.set_user(new_user)  # user set with password, client can obtain keys
                 else:
@@ -223,25 +225,27 @@ class KeyServer:
                 connection_socket.send(out)
 
             elif type == ByteStreamType.newconversation:
-                id = content
-                conversation_key = Fernet.generate_key()
+                if connected_client_logged_in:
+                    id = content
+                    conversation_key = Fernet.generate_key()
 
-                self.conversation_keys[id] = conversation_key
+                    self.conversation_keys[id] = conversation_key
 
-                byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
-                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connected_client.connection_socket.send(out)
+                    byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
+                    out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                    connected_client.connection_socket.send(out)
 
             elif type == ByteStreamType.requestconversationkey:
-                ##TODO verify user
-                id = content
-                conversation_key = self.conversation_keys[id]
+                if connected_client_logged_in:
+                    id = content
+                    conversation_key = self.conversation_keys[id]
 
-                byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
-                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connected_client.connection_socket.send(out)
+                    byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
+                    out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                    connected_client.connection_socket.send(out)
 
             elif type == ByteStreamType.logout:
+                connected_client_logged_in = False
                 connected_client.user = None
 
     def get_users(self):
