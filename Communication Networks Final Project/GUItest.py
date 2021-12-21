@@ -104,11 +104,10 @@ class ClientWindow(QWidget, Ui_Form):
     def check_for_message_once(self):
         time.sleep(2)
         targets = self.H_ContactList.selectedItems()
-        possible_senders = []
-        for target in targets:
-            possible_senders.append(target.text())
+        if len(targets)>0:
+            target = targets[0]
+            possible_senders = target.text().split(", ")
 
-        if len(possible_senders) > 0:
             messages = self.client.get_messages(possible_senders)
             print("messages received at gui")
             self.H_ConvList.clear()
@@ -145,22 +144,23 @@ class ClientWindow(QWidget, Ui_Form):
 
     def send_msg(self):
         msg = self.H_MessageBox.text()
-        receivers = []
         targets = self.H_ContactList.selectedItems()
+
         # targets is empty because self.H_ContactList.selectedItems() isn't on the GUI anymore
 
-        for target in targets:
-            receivers.append(target.text())
-
+        target = targets[0]
+        receivers = target.text()
+        receivers = receivers.split(", ")
         if len(receivers) > 0:
             print(receivers)
             self.H_MsgErrorLabel.clear()
             # TODO implement with client
             self.check_for_message_once()
-
+            self.client.send_message(receivers, msg)
+            self.H_MessageBox.clear()
         else:
             self.H_MsgErrorLabel.setText("No target was selected")
-        self.client.send_message(receivers, msg)
+
 
     def create_conversation(self):
         self.stackedWidget_2.setCurrentWidget(self.CC_activated)
