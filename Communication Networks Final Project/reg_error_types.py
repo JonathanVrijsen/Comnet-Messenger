@@ -1,5 +1,6 @@
 import enum
 
+
 class RegisterErrorType(enum.Enum):
     NoError = 1
     NoStreamMatch = 2

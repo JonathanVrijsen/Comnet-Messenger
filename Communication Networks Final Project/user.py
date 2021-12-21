@@ -1,12 +1,12 @@
 class User:
-    profilePicture = None
+    profile_picture = None
 
     def __init__(self, username, password= None):
         self.username = username
         self.password = password
 
-    def changeUsername(self, newUsername):
-        self.username = newUsername
+    def change_username(self, new_user_name):
+        self.username = new_user_name
 
-    def showUsername(self):
+    def show_user_name(self):
         print(self.username)

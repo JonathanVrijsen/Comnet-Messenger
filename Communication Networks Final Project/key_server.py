@@ -16,59 +16,59 @@ from symmetric_keying import *
 
 class KeyServer:
     userArray = None
-    serverPort = None
-    serverSocket = None
-    stopSocket = None
-    pubKey = None
-    privKey = None
-    currentThreads = None
+    server_port = None
+    server_socket = None
+    stop_socket = None
+    pub_key = None
+    priv_key = None
+    current_threads = None
     conversationKeys = None  # tuple of (id, symmetric key)
 
     def __init__(self):
         self.userArray = []
 
-        self.serverPort = 12002
-        self.stopPort = 12003
+        self.server_port = 12002
+        self.stop_port = 12003
         self.server_ip = '127.0.0.1'
 
-        self.serverSocket = socket(AF_INET,
-                                   SOCK_STREAM)  # AF_INET = Address Family, Internet Protocol (v4) -> ipv4 addresses will connect to this socket.
+        self.server_socket = socket(AF_INET,
+                                    SOCK_STREAM)  # AF_INET = Address Family, Internet Protocol (v4) -> ipv4 addresses will connect to this socket.
 
         # SOCK_STREAM connection oriented -> two-way byte streams
-        self.stopSocket = socket(AF_INET, SOCK_STREAM)
-        self.serverSocket.bind(('127.0.0.1', self.serverPort))  # '' contains addresses, when empty it means all
-        self.stopSocket.bind(('127.0.0.1', self.stopPort))
+        self.stop_socket = socket(AF_INET, SOCK_STREAM)
+        self.server_socket.bind(('127.0.0.1', self.server_port))  # '' contains addresses, when empty it means all
+        self.stop_socket.bind(('127.0.0.1', self.stop_port))
 
-        (self.pubKey, self.privKey) = generate_keys()
+        (self.pub_key, self.priv_key) = generate_keys()
 
-        self.currentThreads = []
-        self.connectedClients = []
+        self.current_threads = []
+        self.connected_clients = []
 
         self.username_password_pairs = []  # already registered users
         #self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
         f_key = open("serverCommonKey.txt",'rb')
-        self.serverCommonKey = f_key.read()
+        self.server_common_key = f_key.read()
 
         self.database = []
         self.conversation_keys = dict()
 
     def listen(self):
-        self.serverSocket.listen(64)
-        connection_socket, addr = self.serverSocket.accept()
+        self.server_socket.listen(64)
+        connection_socket, addr = self.server_socket.accept()
         rcvd_content = connection_socket.recv(1024)
 
         # check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
         byte_stream_in = ByteStream(rcvd_content)
-        if (byte_stream_in.messageType == ByteStreamType.keyrequest):
+        if byte_stream_in.messageType == ByteStreamType.keyrequest:
             client_pub_key = string_to_pubkey(byte_stream_in.content)
             print("KS receivers client pubkey:")
             print(client_pub_key)
 
         print("KS sends own pubkey:")
-        print(self.pubKey)
+        print(self.pub_key)
         # send own public key to client
-        byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pubKey)
+        byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pub_key)
         connection_socket.send(byte_stream_out.outStream)  # send own public key
 
         # encrypt symmetric key and send to client
@@ -76,19 +76,19 @@ class KeyServer:
         print("KS sends symkey:")
         print(new_sym_key)
         msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
-        msg = rsa_sendable(msg_bs.outStream, self.privKey, client_pub_key)
+        msg = rsa_sendable(msg_bs.outStream, self.priv_key, client_pub_key)
         print("KS sends symkey, encrypted")
         print(msg)
         connection_socket.send(msg)
 
         #create new connected client
         new_connected_client = ConnectedClient(connection_socket, new_sym_key, client_pub_key)
-        self.connectedClients.append(new_connected_client)
+        self.connected_clients.append(new_connected_client)
 
 
-        # launch new thread dedicated to connectedClient
+        # launch new thread dedicated to connected_client
         new_thread = threading.Thread(target=self.connected_user_listen, args=(new_connected_client,))
-        self.currentThreads.append(new_thread)
+        self.current_threads.append(new_thread)
         new_thread.start()
 
 
@@ -96,7 +96,7 @@ class KeyServer:
 
         #new_thread = threading.Thread(target=self.handle_message, args=(rcvd_content, connection_socket,))
         #new_thread.start()
-        #self.currentThreads.append(new_thread)
+        #self.current_threads.append(new_thread)
 
     def listen_for_password(self, connection_socket):
         rcvd_content = connection_socket.recv(1024)
@@ -108,14 +108,14 @@ class KeyServer:
 
     def connected_user_listen(self, connected_client):
         while connected_client.active:
-            connection_socket = connected_client.connectionSocket
+            connection_socket = connected_client.connection_socket
             rcvd = connection_socket.recv(1024)
             print("RECEIVED")
             rcvd = symm_decrypt(rcvd, connected_client.symKey)
             print(rcvd)
-            byteStreamIn = ByteStream(rcvd)
-            type = byteStreamIn.messageType
-            content = byteStreamIn.content
+            byte_stream_in = ByteStream(rcvd)
+            type = byte_stream_in.messageType
+            content = byte_stream_in.content
 
             if type == ByteStreamType.registerrequest:
                 print(type)
@@ -130,7 +130,7 @@ class KeyServer:
                     print(username)
                     print(password)
                     self.database.append((username, password))
-                    sign = symm_encrypt(username.encode('ascii'), self.serverCommonKey)
+                    sign = symm_encrypt(username.encode('ascii'), self.server_common_key)
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, str(sign))
                     print("Encrypted Username:", str(sign))
 
@@ -168,7 +168,7 @@ class KeyServer:
                         break
 
                 if password_correct:
-                    sign = symm_encrypt(username.encode('ascii'), self.serverCommonKey)
+                    sign = symm_encrypt(username.encode('ascii'), self.server_common_key)
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordcorrect, str(sign))
 
                     new_user = User(connected_client.user.username, password)
@@ -189,7 +189,7 @@ class KeyServer:
                 print("KS sends conv symkey: ", str(conversation_key))
                 byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
                 out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connected_client.connectionSocket.send(out)
+                connected_client.connection_socket.send(out)
 
             elif type == ByteStreamType.requestconversationkey:
                 ##TODO verify user
@@ -198,7 +198,7 @@ class KeyServer:
 
                 byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
                 out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connected_client.connectionSocket.send(out)
+                connected_client.connection_socket.send(out)
 
 
         # step: decode message using private key and
@@ -210,21 +210,21 @@ class KeyServer:
         return self.database
 
     def get_connected_clients(self):
-        return self.connectedClients
+        return self.connected_clients
 
     def listen_silently(self):
 
-        self.serverSocket.listen(64)
-        connection_socket, addr = self.serverSocket.accept()
+        self.server_socket.listen(64)
+        connection_socket, addr = self.server_socket.accept()
         rcvd_content = connection_socket.recv(1024)
 
         return rcvd_content.decode("utf-8"), addr
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
-        self.stopSocket.connect((self.server_ip, self.serverPort))
-        self.stopSocket.send(b)
-        self.stopSocket.close()
+        self.stop_socket.connect((self.server_ip, self.server_port))
+        self.stop_socket.send(b)
+        self.stop_socket.close()
 
     def get_password(self, login):
         return self.find_in_list(login)[0]

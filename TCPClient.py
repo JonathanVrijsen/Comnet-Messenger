@@ -1,7 +1,6 @@
 from socket import *
-from requests import get
 
-from User import User
+
 
 
 #from click._compat import raw_input
@@ -13,11 +12,11 @@ print("vlop")
 serverPort = 12000
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName, serverPort))
-while(1):
+while 1:
     sentence = input("Input lowercase sentence:")
     b = bytes(sentence, 'utf-8')
     clientSocket.send(b)
     modifiedSentence = clientSocket.recv(1024)
     print('From Server:', modifiedSentence)
-    if(modifiedSentence=="b'END'"):
+    if modifiedSentence== "b'END'":
         clientSocket.close()

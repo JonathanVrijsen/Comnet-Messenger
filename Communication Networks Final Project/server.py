@@ -10,109 +10,111 @@ from conversation import Conversation
 from message import Message
 import threading
 import asymmetric_keying
+from asymmetric_keying import *
+from symmetric_keying import *
+
 
 class ConnectedClient:
     user = None
 
-    def __init__(self, connectionSocket, symKey, pubKey):
-        self.connectionSocket = connectionSocket
-        self.pubKey = pubKey
-        self.symKey = symKey
+    def __init__(self, connection_socket, sym_key, pub_key):
+        self.connection_socket = connection_socket
+        self.pubKey = pub_key
+        self.symKey = sym_key
         self.active = True
         self.user = None
 
-    def set_user(self, newUser):
-        self.user = newUser
+    def set_user(self, new_user):
+        self.user = new_user
 
 
 class Server:
     def __init__(self):
         self.conversations = []
-        self.connectedClients = []
-        self.currentThreads = []
+        self.connected_clients = []
+        self.current_threads = []
 
-        self.knownUsers = set() #empty set (basically list with unique elements)
+        self.known_users = set()  # empty set (basically list with unique elements)
 
-        self.serverPort = 12100
-        self.stopPort = 12101
+        self.server_port = 12100
+        self.stop_port = 12101
         self.server_ip = '127.0.0.1'
-        self.serverSocket = socket(AF_INET, SOCK_STREAM)
-        self.stopSocket = socket(AF_INET, SOCK_STREAM)
-        self.serverSocket.bind(('127.0.0.1', self.serverPort))
-        self.stopSocket.bind(('127.0.0.1', self.stopPort))
+        self.server_socket = socket(AF_INET, SOCK_STREAM)
+        self.stop_socket = socket(AF_INET, SOCK_STREAM)
+        self.server_socket.bind(('127.0.0.1', self.server_port))
+        self.stop_socket.bind(('127.0.0.1', self.stop_port))
 
-        (self.pubKey, self.privKey) = asymmetricKeying.generate_keys()
-        fkey = open("serverCommonKey.txt",'rb')
-        self.serverCommonKey = fkey.read()
+        (self.pub_key, self.priv_key) = generate_keys()
+        f_key = open("serverCommonKey.txt", 'rb')
+        self.serverCommonKey = f_key.read()
 
         self.i = 0
 
     def listen(self):
-        self.serverSocket.listen(64)
-        connectionSocket, addr = self.serverSocket.accept()
-        rcvdContent = connectionSocket.recv(1024)
+        self.server_socket.listen(64)
+        connection_socket, addr = self.server_socket.accept()
+        rcvd_content = connection_socket.recv(1024)
 
-        #check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
-        byteStreamIn = ByteStream(rcvdContent)
-        if (byteStreamIn.messageType == ByteStreamType.keyrequest):
-            clientPubKey = asymmetricKeying.string_to_pubkey(byteStreamIn.content)
+        # check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
+        byte_stream_in = ByteStream(rcvd_content)
+        if byte_stream_in.messageType == ByteStreamType.keyrequest:
+            client_pub_key = string_to_pubkey(byte_stream_in.content)
             print("KS receivers client pubkey:")
-            print(clientPubKey)
+            print(client_pub_key)
 
         print("KS sends own pubkey:")
-        print(self.pubKey)
+        print(self.pub_key)
         # send own public key to client
-        byteStreamOut = ByteStream(ByteStreamType.pubkeyanswer, self.pubKey)
-        connectionSocket.send(byteStreamOut.outStream)  # send own public key
+        byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pub_key)
+        connection_socket.send(byte_stream_out.outStream)  # send own public key
 
         # encrypt symmetric key and send to client
-        newSymKey = Fernet.generate_key()
+        new_sym_key = Fernet.generate_key()
         print("KS sends symkey:")
-        print(newSymKey)
-        msg_bs = ByteStream(ByteStreamType.symkeyanswer, newSymKey)
-        msg = asymmetricKeying.rsa_sendable(msg_bs.outStream, self.privKey, clientPubKey)
+        print(new_sym_key)
+        msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
+        msg = rsa_sendable(msg_bs.outStream, self.priv_key, client_pub_key)
         print("KS sends symkey, encrypted")
         print(msg)
-        connectionSocket.send(msg)
+        connection_socket.send(msg)
 
         # create new connected client
-        newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
-        self.connectedClients.append(newConnectedClient)
+        new_connected_client = ConnectedClient(connection_socket, new_sym_key, client_pub_key)
+        self.connected_clients.append(new_connected_client)
 
-        # launch new thread dedicated to connectedClient
-        newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient,))
-        self.currentThreads.append(newThread)
-        newThread.start()
+        # launch new thread dedicated to connected_client
+        new_thread = threading.Thread(target=self.connected_user_listen, args=(new_connected_client,))
+        self.current_threads.append(new_thread)
+        new_thread.start()
 
-        #note that it's possible that multiple clients are logged in to the same user
+        # note that it's possible that multiple clients are logged in to the same user
 
-    def connected_user_listen(self, connectedClient):
-        while(connectedClient.active):
-            connectionSocket = connectedClient.connectionSocket
+    def connected_user_listen(self, connected_client):
+        while connected_client.active:
+            connection_socket = connected_client.connection_socket
 
-            rcvd = connectionSocket.recv(1024)
-            rcvd = symmetricKeying.symm_decrypt(rcvd, connectedClient.symKey)
-            byteStreamIn = ByteStream(rcvd)
-            rcvdContent = byteStreamIn.content
+            rcvd = connection_socket.recv(1024)
+            rcvd = symm_decrypt(rcvd, connected_client.symKey)
+            byte_stream_in = ByteStream(rcvd)
+            rcvd_content = byte_stream_in.content
 
-            if byteStreamIn.messageType == ByteStreamType.registertomain:
-                (username, sign) = rcvdContent.split(" - ", 1)
+            if byte_stream_in.messageType == ByteStreamType.registertomain:
+                (username, sign) = rcvd_content.split(" - ", 1)
                 print("MAIN SERVER: REGISTER TO MAIN")
                 print(username)
                 print(sign)
-                sign = sign[2:len(sign)-1]
+                sign = sign[2:len(sign) - 1]
                 print(sign)
 
-
-                decrypted_username = symmetricKeying.symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
+                decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
 
                 if username.encode('ascii') == decrypted_username:
                     print("USER RGISTERED AT MAIN SERVER:", username)
-                    newUser = User(username)
-                    self.knownUsers.add(newUser) #doesn't add if already in set
+                    new_user = User(username)
+                    self.known_users.add(new_user)  # doesn't add if already in set
 
-            elif byteStreamIn.messageType == ByteStreamType.requestallids:
-                username = connectedClient.user.username
+            elif byte_stream_in.messageType == ByteStreamType.requestallids:
+                username = connected_client.user.username
                 first = True
                 print(len(self.conversations))
                 for conv in self.conversations:
@@ -126,85 +128,83 @@ class Server:
                 if first:
                     id_array = ""
 
-                byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answerallids, id_array)
-                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
-                connectedClient.connectionSocket.send(out)
+                byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answerallids, id_array)
+                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                connected_client.connection_socket.send(out)
 
-            elif byteStreamIn.messageType == ByteStreamType.loginrequest:
-                (username, sign) = rcvdContent.split(" - ", 1)
+            elif byte_stream_in.messageType == ByteStreamType.loginrequest:
+                (username, sign) = rcvd_content.split(" - ", 1)
                 print("MAIN SERVER: LOGIN OF:", username)
-                sign = sign[2:len(sign)-1]
-                decrypted_username = symmetricKeying.symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
+                sign = sign[2:len(sign) - 1]
+                decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
                 if username.encode('ascii') == decrypted_username:
                     print("NOUS SOMMES ENTRES")
-                    newUser = User(username)
-                    connectedClient.set_user(newUser)
+                    new_user = User(username)
+                    connected_client.set_user(new_user)
 
-            elif byteStreamIn.messageType == ByteStreamType.contactrequest:
+            elif byte_stream_in.messageType == ByteStreamType.contactrequest:
                 print("CONTACT REQUEST AT MAIN SERVER")
                 contacts = ""
                 first = True
-                for user in self.knownUsers:
+                for user in self.known_users:
                     username = user.username
-                    print(connectedClient.user.username)
-                    #if username != connectedClient.user.username:
-                    #TODO filter in different way
+                    print(connected_client.user.username)
+                    # if username != connected_client.user.username:
+                    # TODO filter in different way
                     if first:
                         contacts = contacts + username
                         first = not first
                     else:
                         contacts = contacts + " - " + username
-                print("send: ",contacts)
-                byteStreamOut = ByteStream(ByteStreamType.contactanswer, contacts)
-                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
-                connectionSocket.send(out)
+                print("send: ", contacts)
+                byte_stream_out = ByteStream(ByteStreamType.contactanswer, contacts)
+                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                connection_socket.send(out)
 
-            elif byteStreamIn.messageType == ByteStreamType.newconversation:
-                members = rcvdContent.split(" - ")
+            elif byte_stream_in.messageType == ByteStreamType.newconversation:
+                members = rcvd_content.split(" - ")
                 print("MS receives members: ", members)
-                id = symmetricKeying.hash_string(rcvdContent)
+                id = hash_string(rcvd_content)
                 conversation = Conversation(members, id)
                 self.conversations.append(conversation)
 
-            elif byteStreamIn.messageType == ByteStreamType.message:
-                #extract conversation id and content from rcvdContent
-                #string has following form: id-content, so split at first occurence of "-"
-                id = rcvdContent[:40]
-                msg = rcvdContent[43:]
+            elif byte_stream_in.messageType == ByteStreamType.message:
+                # extract conversation id and content from rcvd_content
+                # string has the following form: id-content, so split at first occurence of "-"
+                id = rcvd_content[:40]
+                msg = rcvd_content[43:]
 
                 print("MS receives msg: ", msg)
 
-                sender = connectedClient.user
-                #TODO user is last registered, not last logged in
+                sender = connected_client.user
+                # TODO user is last registered, not last logged in
                 message = Message(sender.username, msg)
 
-                #check if message id is in existing conversations
+                # check if message id is in existing conversations
                 for conversation in self.conversations:
                     if id == conversation.id:
-                        #save message in conversation
+                        # save message in conversation
                         conversation.add_message(message)
                         print("conversation changed: ")
                         conversation.print_messages()
-                        #find all the receivers
+                        # find all the receivers
                         members = conversation.members
                         print("conversation members: ", members)
                         break
 
-
-
-                byteStreamOut = ByteStream(ByteStreamType.message, str(id) + " - " + sender.username + " - " + msg)
+                byte_stream_out = ByteStream(ByteStreamType.message, str(id) + " - " + sender.username + " - " + msg)
                 for receiver in members:
-                    #note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
-                    for tempConnectedClient in self.connectedClients:
+                    # note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
+                    for tempConnectedClient in self.connected_clients:
                         print(tempConnectedClient.user.username)
 
-                        if tempConnectedClient.user.username != None and receiver == tempConnectedClient.user.username and tempConnectedClient != connectedClient:
-                            out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, tempConnectedClient.symKey)
+                        if tempConnectedClient.user.username is not None and receiver == tempConnectedClient.user.username and tempConnectedClient != connected_client:
+                            out = symm_encrypt(byte_stream_out.outStream, tempConnectedClient.symKey)
                             print('MS sends message')
-                            tempConnectedClient.connectionSocket.send(out)
+                            tempConnectedClient.connection_socket.send(out)
 
-            elif byteStreamIn.messageType == ByteStreamType.requestmembers:
-                id = rcvdContent
+            elif byte_stream_in.messageType == ByteStreamType.requestmembers:
+                id = rcvd_content
                 for conv in self.conversations:
                     if id == conv.id:
                         members = conv.members
@@ -216,48 +216,47 @@ class Server:
                             else:
                                 total_string = total_string + " - " + m
 
-                byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answermembers, total_string)
-                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
-                connectedClient.connectionSocket.send(out)
+                byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answermembers, total_string)
+                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                connected_client.connection_socket.send(out)
 
-            elif byteStreamIn.messageType == ByteStreamType.getconversation:
-                id = byteStreamIn.content
+            elif byte_stream_in.messageType == ByteStreamType.getconversation:
+                id = byte_stream_in.content
                 for conv in self.conversations:
                     if id == conv.id:
                         encoded_conversation = conv.encode_conversation()
-                        byteStreamOut = ByteStream(ByteStreamType.conversation, encoded_conversation)
-                        out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
-                        connectionSocket.send(out)
+                        byte_stream_out = ByteStream(ByteStreamType.conversation, encoded_conversation)
+                        out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                        connection_socket.send(out)
                         break
 
     def listen_silently(self):
 
         if self.i == 0:
             print("listening...")
-            self.serverSocket.listen(64)
-            self.connectionSocket, addr = self.serverSocket.accept()
-            rcvdContent = self.connectionSocket.recv(1024)
+            self.server_socket.listen(64)
+            self.connection_socket, addr = self.server_socket.accept()
+            rcvd_content = self.connection_socket.recv(1024)
             print("recieved!")
-            print(rcvdContent.decode("utf-8"))
-            self.i = self.i+1
-            return rcvdContent.decode("utf-8"), addr
+            print(rcvd_content.decode("utf-8"))
+            self.i = self.i + 1
+            return rcvd_content.decode("utf-8"), addr
 
         else:
             print("waf")
-            self.serverSocket.listen(64)
-            rcvdContent = self.connectionSocket.recv(1024)
-            print(rcvdContent.decode("utf-8"))
-            return rcvdContent.decode("utf-8"), (0,0)
-
+            self.server_socket.listen(64)
+            rcvd_content = self.connection_socket.recv(1024)
+            print(rcvd_content.decode("utf-8"))
+            return rcvd_content.decode("utf-8"), (0, 0)
 
     def close(self):
-        #perhaps send close message to all connectedClients
+        # perhaps send close message to all connected_clients
 
-        for thread in self.currentThreads:
+        for thread in self.current_threads:
             thread.join()
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
-        self.stopSocket.connect((self.server_ip, self.serverPort))
-        self.stopSocket.send(b)
-        self.stopSocket.close()
+        self.stop_socket.connect((self.server_ip, self.server_port))
+        self.stop_socket.send(b)
+        self.stop_socket.close()

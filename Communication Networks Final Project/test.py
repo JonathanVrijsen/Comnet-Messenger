@@ -1,4 +1,5 @@
 from cryptography.fernet import Fernet
+from symmetric_keying import *
 
 # import asymmetricKeying
 # from byteStream import ByteStream
@@ -32,7 +33,7 @@ import conversation
 import message
 import symmetric_keying
 
-id = symmetricKeying.hash_string("josjan")
+id = hash_string("josjan")
 print(id)
 
 conv = conversation.Conversation(["jos", "jan"], "12")

@@ -19,6 +19,6 @@ def symm_decrypt(msg, key):
     return cipher.decrypt(msg)
 
 
-def str_to_symkey(sym_key_str):
+def str_to_symmkey(sym_key_str):
     sym_key_str = sym_key_str[2:len(sym_key_str) - 1]
     return bytes(sym_key_str, "utf-8")

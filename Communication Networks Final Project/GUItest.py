@@ -3,11 +3,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from PyQt5.uic import loadUi
 
-from main_window_ui import Ui_MainWindow
+from main_window_ui import UIMainWindow
 from client_window_ui import UiForm
-from server_window_ui import Ui_ServerWind
+from server_window_ui import UIServerWind
 
 from threading import *
 
@@ -19,10 +18,10 @@ from key_server import *
 import time
 
 
-class MainMenu(QMainWindow, Ui_MainWindow):
+class MainMenu(QMainWindow, UIMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setupUi(self)
+        self.setup_ui(self)
         self.M_ClientCreateButton.clicked.connect(self.create_client_window)
         self.M_ServerOverviewButton.clicked.connect(self.create_server_overview)
         self.M_CreateKeyServerButton.clicked.connect(self.create_keyserver_overview)
@@ -179,14 +178,14 @@ class ClientWindow(QWidget, UiForm):
             print(targets_str)
             self.client.start_conversation(targets_str)
             self.H_CC_ErrorLabel.clear()
-            self.stackedWidget_2.setCurrentWidget((self.CC_standard))
+            self.stackedWidget_2.setCurrentWidget(self.CC_standard)
 
         else:
             self.H_CC_ErrorLabel.setText("No participants were selected")
         # TODO create new conv in client with this list
 
     def exit_CC(self):
-        self.stackedWidget_2.setCurrentWidget((self.CC_standard))
+        self.stackedWidget_2.setCurrentWidget(self.CC_standard)
 
     def get_conversations(self):
         self.H_ContactList.clear()
@@ -203,20 +202,20 @@ class ClientWindow(QWidget, UiForm):
     # self.H_ContactList.addItem(QListWidgetItem(contact))
 
 
-class ServerOverview(QWidget, Ui_ServerWind):
+class ServerOverview(QWidget, UIServerWind):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setupUi(self)
+        self.setup_ui(self)
         self.setWindowTitle("Server Overview")
 
         self.MainServer = Server()
 
-        self.S_PrvtKeyLabel.setText(str(self.MainServer.privKey))
-        self.S_PblcKeyLabel.setText(str(self.MainServer.pubKey))
+        self.S_PrvtKeyLabel.setText(str(self.MainServer.priv_key))
+        self.S_PblcKeyLabel.setText(str(self.MainServer.pub_key))
 
         self.S_RegDataTable.setRowCount(10)
         self.S_RegDataTable.setColumnCount(3)
-        self.S_RegDataTable.setHorizontalHeaderLabels(("Username;Pasword;Symkey").split(";"))
+        self.S_RegDataTable.setHorizontalHeaderLabels("Username;Pasword;Symkey".split(";"))
 
         self.stop_thread = False
         self.listen_thread = Thread(target=self.server_listen)
@@ -235,16 +234,16 @@ class ServerOverview(QWidget, Ui_ServerWind):
         self.listen_thread.join()
 
 
-class KeyServerOverview(QWidget, Ui_ServerWind):
+class KeyServerOverview(QWidget, UIServerWind):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setupUi(self)
+        self.setup_ui(self)
         self.setWindowTitle("Keyserver Overview")
 
         self.KeyServer = KeyServer()
 
-        self.S_PrvtKeyLabel.setText(str(self.KeyServer.privKey))
-        self.S_PblcKeyLabel.setText(str(self.KeyServer.pubKey))
+        self.S_PrvtKeyLabel.setText(str(self.KeyServer.priv_key))
+        self.S_PblcKeyLabel.setText(str(self.KeyServer.pub_key))
 
         self.S_RegDataTable.setRowCount(10)
         self.S_RegDataTable.setColumnCount(2)
