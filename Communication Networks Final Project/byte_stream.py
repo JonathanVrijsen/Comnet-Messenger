@@ -82,7 +82,6 @@ def extract_from_byte_string(out_string):
     elif re.search(r"^loginrequest - ", out_string) is not None:
         message_type = byte_stream_type.ByteStreamType.loginrequest
         (start, end) = re.search(r"^loginrequest - ", out_string).span()
-        print(start, end)
         content = out_string[end:]
     elif re.search(r"^registeranswer - ", out_string) is not None:
         (start, end) = re.search(r"^registeranswer - ", out_string).span()

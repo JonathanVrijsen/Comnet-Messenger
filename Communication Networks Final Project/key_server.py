@@ -84,8 +84,6 @@ class KeyServer:
                     sock.close()
                     time.sleep(0.37)
                 except error as e:
-                    if e.errno == errno.EADDRINUSE:
-                        print("KS can't listen on broadcast: already in use")
                     sock.close()
                     time.sleep(0.1)
 
@@ -122,23 +120,17 @@ class KeyServer:
 
         elif byte_stream_in.messageType == ByteStreamType.keyrequest:
             client_pub_key = string_to_pubkey(byte_stream_in.content)
-            print("KS receivers client pubkey:")
-            print(client_pub_key)
 
-            print("KS sends own pubkey:")
-            print(self.pub_key)
             # send own public key to client
             byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pub_key)
             connection_socket.send(byte_stream_out.outStream)  # send own public key
 
             # encrypt symmetric key and send to client
             new_sym_key = Fernet.generate_key()
-            print("KS sends symkey:")
-            print(new_sym_key)
+
             msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
             msg = rsa_sendable(msg_bs.outStream, self.priv_key, client_pub_key)
-            print("KS sends symkey, encrypted")
-            print(msg)
+
             connection_socket.send(msg)
 
             #create new connected client
@@ -160,10 +152,7 @@ class KeyServer:
 
     def listen_for_password(self, connection_socket):
         rcvd_content = connection_socket.recv(1024)
-        print("content rec listen for password")
         if rcvd_content != b"":
-            print("content not empty listen for password")
-            print(rcvd_content)
             self.handle_message(rcvd_content, connection_socket)
 
     def connected_client_listen(self, connected_client):
@@ -174,29 +163,20 @@ class KeyServer:
 
             connection_socket = connected_client.connection_socket
             rcvd = connection_socket.recv(1024)
-            print("RECEIVED")
             rcvd = symm_decrypt(rcvd, connected_client.symKey)
-            print(rcvd)
             byte_stream_in = ByteStream(rcvd)
             type = byte_stream_in.messageType
             content = byte_stream_in.content
 
             if type == ByteStreamType.registerrequest:
-                print(type)
-                print(content)
                 (username, password) = content.split(' - ', 1)
                 if self.check_existence_of_account(username):
-                    print("EXISTS")
                     # raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, "failed")
                 else:
-                    print("DOES NOT EXIST")
-                    print(username)
-                    print(password)
                     self.database.append((username, password))
                     sign = symm_encrypt(username.encode('ascii'), self.server_common_key)
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, str(sign))
-                    print("Encrypted Username:", str(sign))
 
                 out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
                 connection_socket.send(out)
@@ -205,7 +185,6 @@ class KeyServer:
                 user_exists = False
                 username = content
                 for name_pw_pair in self.database:
-                    print(self.database)
                     if name_pw_pair[0] == username:
                         # the user exist
                         user_exists = True
@@ -238,7 +217,6 @@ class KeyServer:
                     new_user = User(connected_client.user.username, password)
                     connected_client.set_user(new_user)  # user set with password, client can obtain keys
                 else:
-                    print("password incorrect!!")
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordwrong, "")
 
                 out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
@@ -250,7 +228,6 @@ class KeyServer:
 
                 self.conversation_keys[id] = conversation_key
 
-                print("KS sends conv symkey: ", str(conversation_key))
                 byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
                 out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                 connected_client.connection_socket.send(out)
@@ -309,8 +286,6 @@ class KeyServer:
             f.write(json_string)
             f.close()
 
-            print(json_string)
-
     def stop_listening(self):
         self.store_keys()
         self.store_users()
@@ -320,10 +295,8 @@ class KeyServer:
         self.stop_socket.send(b)
         self.stop_socket.close()
 
-        print("KS needs to close ", len(self.current_threads), "threads")
         for thread in self.current_threads:
             thread.join(2)
-        print("KS threads closed")
 
     def get_password(self, login):
         return self.find_in_list(login)[0]
