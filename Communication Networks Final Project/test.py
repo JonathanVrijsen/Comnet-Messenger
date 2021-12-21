@@ -32,7 +32,7 @@ import conversation
 import message
 import symmetric_keying
 
-id = symmetricKeying.hashString("josjan")
+id = symmetricKeying.hash_string("josjan")
 print(id)
 
 conv = conversation.Conversation(["jos", "jan"], "12")

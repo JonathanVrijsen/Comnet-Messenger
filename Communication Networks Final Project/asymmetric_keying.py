@@ -49,8 +49,8 @@ def rsa_receive(cipher_msg, pub_key_sender, priv_key_receiver):
         return False
 
 
-def string_to_pubkey(pubkeystr):
-    f, l = pubkeystr.split('(')
+def string_to_pubkey(pub_key_str):
+    f, l = pub_key_str.split('(')
     n, e = l.split(',')
     e = e[1:len(e) - 1]
     pub_key = rsa.PublicKey(int(n), int(e))

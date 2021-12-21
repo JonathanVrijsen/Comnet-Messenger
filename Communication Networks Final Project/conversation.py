@@ -1,5 +1,6 @@
 from message import Message
 
+
 class Conversation:
     def __init__(self, members, id):
         self.messages = []
@@ -9,7 +10,7 @@ class Conversation:
     def add_message(self, message):
         self.messages.append(message)
 
-    def printmessages(self):
+    def print_messages(self):
         for message in self.messages:
             print(message.content)
 
@@ -20,7 +21,7 @@ class Conversation:
         member_string = ""
         for member in self.members:
             member_string = member_string + member + ";;;"
-        member_string = member_string[0:len(member_string)-3]  # cut off last ";;;"
+        member_string = member_string[0:len(member_string) - 3]  # cut off last ";;;"
         to_encode_string = to_encode_string + member_string + " -- "
 
         message_string = ""
@@ -29,11 +30,10 @@ class Conversation:
         message_string = message_string[0:len(message_string) - 3]  # cut off last ";;;"
         if message_string != "":
             to_encode_string = to_encode_string + message_string
-        
+
         return to_encode_string
 
     def decode_conversation(self, to_decode_string):
-
 
         # first create an empty conversation, use this function on the empty conversation
         conv_attr = to_decode_string.split(" -- ")
@@ -44,6 +44,3 @@ class Conversation:
             for message_str in messages:
                 message = message_str.split(";,;")
                 self.messages.append(Message(message[0], message[1]))
-
-
-

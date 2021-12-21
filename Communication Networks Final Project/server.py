@@ -91,7 +91,7 @@ class Server:
             connectionSocket = connectedClient.connectionSocket
 
             rcvd = connectionSocket.recv(1024)
-            rcvd = symmetricKeying.symmDecrypt(rcvd, connectedClient.symKey)
+            rcvd = symmetricKeying.symm_decrypt(rcvd, connectedClient.symKey)
             byteStreamIn = ByteStream(rcvd)
             rcvdContent = byteStreamIn.content
 
@@ -104,7 +104,7 @@ class Server:
                 print(sign)
 
 
-                decrypted_username = symmetricKeying.symmDecrypt(sign.encode('ascii'), self.serverCommonKey)
+                decrypted_username = symmetricKeying.symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
 
                 if username.encode('ascii') == decrypted_username:
                     print("USER RGISTERED AT MAIN SERVER:", username)
@@ -127,14 +127,14 @@ class Server:
                     id_array = ""
 
                 byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answerallids, id_array)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectedClient.connectionSocket.send(out)
 
             elif byteStreamIn.messageType == ByteStreamType.loginrequest:
                 (username, sign) = rcvdContent.split(" - ", 1)
                 print("MAIN SERVER: LOGIN OF:", username)
                 sign = sign[2:len(sign)-1]
-                decrypted_username = symmetricKeying.symmDecrypt(sign.encode('ascii'), self.serverCommonKey)
+                decrypted_username = symmetricKeying.symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
                 if username.encode('ascii') == decrypted_username:
                     print("NOUS SOMMES ENTRES")
                     newUser = User(username)
@@ -156,13 +156,13 @@ class Server:
                         contacts = contacts + " - " + username
                 print("send: ",contacts)
                 byteStreamOut = ByteStream(ByteStreamType.contactanswer, contacts)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
             elif byteStreamIn.messageType == ByteStreamType.newconversation:
                 members = rcvdContent.split(" - ")
                 print("MS receives members: ", members)
-                id = symmetricKeying.hashString(rcvdContent)
+                id = symmetricKeying.hash_string(rcvdContent)
                 conversation = Conversation(members, id)
                 self.conversations.append(conversation)
 
@@ -184,7 +184,7 @@ class Server:
                         #save message in conversation
                         conversation.add_message(message)
                         print("conversation changed: ")
-                        conversation.printmessages()
+                        conversation.print_messages()
                         #find all the receivers
                         members = conversation.members
                         print("conversation members: ", members)
@@ -199,7 +199,7 @@ class Server:
                         print(tempConnectedClient.user.username)
 
                         if tempConnectedClient.user.username != None and receiver == tempConnectedClient.user.username and tempConnectedClient != connectedClient:
-                            out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, tempConnectedClient.symKey)
+                            out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, tempConnectedClient.symKey)
                             print('MS sends message')
                             tempConnectedClient.connectionSocket.send(out)
 
@@ -217,7 +217,7 @@ class Server:
                                 total_string = total_string + " - " + m
 
                 byteStreamOut = ByteStream(byteStreamType.ByteStreamType.answermembers, total_string)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectedClient.connectionSocket.send(out)
 
             elif byteStreamIn.messageType == ByteStreamType.getconversation:
@@ -226,7 +226,7 @@ class Server:
                     if id == conv.id:
                         encoded_conversation = conv.encode_conversation()
                         byteStreamOut = ByteStream(ByteStreamType.conversation, encoded_conversation)
-                        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                        out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
                         connectionSocket.send(out)
                         break
 

@@ -20,7 +20,7 @@ import time
 
 
 class MainMenu(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         super().__init__(parent)
         self.setupUi(self)
         self.M_ClientCreateButton.clicked.connect(self.create_client_window)
@@ -30,7 +30,7 @@ class MainMenu(QMainWindow, Ui_MainWindow):
         self.client_windows = []
         self.newClientWindow = None
         self.server_overview = None
-        self.keyserver_overview =None
+        self.keyserver_overview = None
 
     def create_client_window(self):
         self.newClientWindow = ClientWindow()

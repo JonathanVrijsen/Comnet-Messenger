@@ -1,25 +1,22 @@
 import hashlib
 import threading
-import time
-
-import asymmetric_keying
-import byte_stream_type
 from conversation import *
-import symmetric_keying
 from asymmetric_keying import *
+from symmetric_keying import *
 from message import Message
 from user import User
 from socket import *
 from reg_error_types import *
 from byte_stream import *
 from byte_stream_type import *
-from cryptography.fernet import Fernet
 import time
 
-def hashString(input_string):
+
+def hash_string(input_string):
     pb = bytes(input_string, 'utf-8')
     hash = hashlib.sha1(pb)
     return hash.hexdigest()
+
 
 class Client:
     user = None
@@ -32,19 +29,19 @@ class Client:
 
     def __init__(self):
         self.own_ip = "127.0.0.1"
-        (self.pubKey, self.privKey) = generate_keys()
+        (self.pub_key, self.priv_key) = generate_keys()
 
         (self.server_ip, self.server_socket, self.key_server_ip, self.key_server_socket) = self.get_server_information()
 
         self.clientToMainSocket = socket(AF_INET, SOCK_STREAM)
         self.clientToMainSocket.connect((self.server_ip, self.server_socket))
-        self.Mainserver_pubkey = None
-        self.Mainserver_symkey = None
+        self.mainserver_pubkey = None
+        self.mainserver_symkey = None
 
         self.clientToKeySocket = socket(AF_INET, SOCK_STREAM)
         self.clientToKeySocket.connect((self.key_server_ip, self.key_server_socket))
-        self.Keyserver_pubkey = ""
-        self.Keyserver_symkey = ""
+        self.keyserver_pubkey = ""
+        self.keyserver_symkey = ""
 
         self.currentThreads = []
         self.all_conversation_members = []
@@ -52,25 +49,23 @@ class Client:
         self.first_message_to_keyserver()
         self.first_message_to_server()
 
-
-
-        #self.clientToKeySocket.send(reg_bs.outStream)
+        # self.clientToKeySocket.send(reg_bs.outStream)
         self.contacts = []
-        self.knownconversationkeys = dict()
+        self.known_conversation_keys = dict()
 
         self.conversations = []
 
     def login(self, username, password):
-        password = hashString(password) #since only hashed version of password is transmitted
+        password = hash_string(password)  # since only hashed version of password is transmitted
         # send username and password to keyserver
         # if login successful, set current user of client and get conversations from server
 
         login_bs = ByteStream(ByteStreamType.loginrequest, username)
-        out = symmetricKeying.symmEncrypt(login_bs.outStream, self.Keyserver_symkey)
+        out = symm_encrypt(login_bs.outStream, self.keyserver_symkey)
         self.clientToKeySocket.send(out)
 
         msg = self.clientToKeySocket.recv(1024)
-        msg = symmetricKeying.symmDecrypt(msg, self.Keyserver_symkey)
+        msg = symm_decrypt(msg, self.keyserver_symkey)
         print(msg)
         login_ans_bs = ByteStream(msg)
         ans_type = login_ans_bs.messageType
@@ -78,11 +73,11 @@ class Client:
         if ans_type == ByteStreamType.passwordrequest:
             # send password
             password_bs = ByteStream(ByteStreamType.passwordanswer, password)
-            out = symmetricKeying.symmEncrypt(password_bs.outStream, self.Keyserver_symkey)
+            out = symm_encrypt(password_bs.outStream, self.keyserver_symkey)
             self.clientToKeySocket.send(out)
 
             msg = self.clientToKeySocket.recv(1024)
-            msg = symmetricKeying.symmDecrypt(msg, self.Keyserver_symkey)
+            msg = symm_decrypt(msg, self.keyserver_symkey)
             print(msg)
             password_ans_bs = ByteStream(msg)
             ans_type = password_ans_bs.messageType
@@ -92,14 +87,11 @@ class Client:
                 print("encrypted name:", self.encrypted_username)
                 self.user = User(username, password)
 
-                byteStreamOut = ByteStream(ByteStreamType.loginrequest, username + " - " + self.encrypted_username)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+                byte_stream_out = ByteStream(ByteStreamType.loginrequest, username + " - " + self.encrypted_username)
+                out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
                 self.clientToMainSocket.send(out)
 
-
-
-
-                listen_thread = threading.Thread(target = self.listen_to_mainserver)
+                listen_thread = threading.Thread(target=self.listen_to_mainserver)
                 listen_thread.start()
                 self.currentThreads.append(listen_thread)
                 return True
@@ -115,71 +107,69 @@ class Client:
     def listen_to_mainserver(self):
         while True:
             rcvd = self.clientToMainSocket.recv(1024)
-            rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
-            byteStreamIn = ByteStream(rcvd)
-            rcvdContent = byteStreamIn.content
-            print("received at start ",rcvdContent)
-            type = byteStreamIn.messageType
+            rcvd = symm_decrypt(rcvd, self.mainserver_symkey)
+            byte_stream_in = ByteStream(rcvd)
+            rcvd_content = byte_stream_in.content
+            print("received at start ", rcvd_content)
+            type = byte_stream_in.messageType
 
-            if type == byteStreamType.ByteStreamType.message:
-                id = rcvdContent[:40]
-                othercontent = rcvdContent[43:]
-                (sendername, msg) = othercontent.split(" - ", 1)
+            if type == byte_stream_type.ByteStreamType.message:
+                id = rcvd_content[:40]
+                other_content = rcvd_content[43:]
+                (sender_name, msg) = other_content.split(" - ", 1)
 
-                print("CL gets message:" , msg)
+                print("CL gets message:", msg)
 
-                if not(id in self.knownconversationkeys):
+                if not (id in self.known_conversation_keys):
                     # ask for key at key server
-                    byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestconversationkey, id)
-                    out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Keyserver_symkey)
+                    byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.requestconversationkey, id)
+                    out = symm_encrypt(byte_stream_out.outStream, self.keyserver_symkey)
                     self.clientToKeySocket.send(out)
 
                     rcvd = self.clientToKeySocket.recv(1024)
-                    rcvd = symmetricKeying.symmDecrypt(rcvd, self.Keyserver_symkey)
-                    byteStreamIn = ByteStream(rcvd)
-                    if byteStreamIn.messageType == byteStreamType.ByteStreamType.symkeyanswer:
-                        content = byteStreamIn.content
-                        conversation_key = symmetricKeying.strToSymkey(content)
-                        self.knownconversationkeys[id] = conversation_key
+                    rcvd = symm_decrypt(rcvd, self.keyserver_symkey)
+                    byte_stream_in = ByteStream(rcvd)
+                    if byte_stream_in.messageType == byte_stream_type.ByteStreamType.symkeyanswer:
+                        content = byte_stream_in.content
+                        conversation_key = str_to_symkey(content)
+                        self.known_conversation_keys[id] = conversation_key
 
-                        byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestmembers, id)
-                        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+                        byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.requestmembers, id)
+                        out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
                         self.clientToMainSocket.send(out)
 
-
                         rcvd = self.clientToMainSocket.recv(1024)
-                        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
-                        byteStreamIn = ByteStream(rcvd)
+                        rcvd = symm_decrypt(rcvd, self.mainserver_symkey)
+                        byte_stream_in = ByteStream(rcvd)
 
-                        if byteStreamIn.messageType == byteStreamType.ByteStreamType.answermembers:
-                            members = byteStreamIn.content
+                        if byte_stream_in.messageType == byte_stream_type.ByteStreamType.answermembers:
+                            members = byte_stream_in.content
                             members = members.split(" - ")
-                            newconversation = Conversation(members, id)
-                            self.conversations.append(newconversation)
+                            new_conversation = Conversation(members, id)
+                            self.conversations.append(new_conversation)
 
                 for conv in self.conversations:
                     if id == conv.id:
                         members = conv.members
-                        sendernameismmember = False
+                        sender_name_is_member = False
                         print("CL found id: " + id)
                         for m in members:
-                            membername = m
-                            if sendername == membername:
-                                sendernameismmember = True
+                            member_name = m
+                            if sender_name == member_name:
+                                sender_name_is_member = True
                                 sender = m
-                        print("CL got message from: "+sender)
-                        if sendernameismmember:
+                        print("CL got message from: " + sender)
+                        if sender_name_is_member:
                             message = Message(sender, msg)
                             conv.add_message(message)
                         break
+            if byte_stream_in.messageType == ByteStreamType.contactanswer:
+                self.contacts = byte_stream_in.content.split(" - ")
+                print("received: ", self.contacts)
+                # TODO add message to conversation
 
-            if byteStreamIn.messageType == ByteStreamType.contactanswer:
-                self.contacts = byteStreamIn.content.split(" - ")
-                print("recieved: ", self.contacts)
-                #TODO add message to conversation
-
-            if byteStreamIn.messageType == byteStreamType.ByteStreamType.answerallids:
-                id_array = byteStreamIn.content
+            if byte_stream_in.messageType == byte_stream_type.ByteStreamType.answerallids:
+                id_array = byte_stream_in.content
                 ids = id_array.split(" - ")
                 print("CLIENT RECEIVED IDS:", ids)
                 self.conversations.clear()
@@ -199,7 +189,6 @@ class Client:
                     self.all_conversation_members.append(conversation_members)
                     self.conversations.append(conversation)
 
-
     def get_messages(self, contact):
         contact.append(self.user.username)
         asked_members = contact
@@ -208,11 +197,9 @@ class Client:
             if sorted(conv.members) == asked_members:
                 ans = []
                 for mes in conv.messages:
-
                     ans.append(mes.sender + ": " + mes.content)
                 return ans
         print("fuck")
-
 
     def register(self, username, password1, password2, password3):
 
@@ -223,17 +210,17 @@ class Client:
         elif not password1:
             return RegisterErrorType.NoPassword
         else:
-            password_hash = hashString(password1)
+            password_hash = hash_string(password1)
             reg_bs = ByteStream(ByteStreamType.registerrequest, username + " - " + password_hash)
 
-            if (self.Keyserver_symkey != None):
-                print(self.Keyserver_symkey)
+            if (self.keyserver_symkey != None):
+                print(self.keyserver_symkey)
                 print(reg_bs)
-                out = symmetricKeying.symmEncrypt(reg_bs.outStream, self.Keyserver_symkey)
+                out = symm_encrypt(reg_bs.outStream, self.keyserver_symkey)
                 print("SENT")
                 self.clientToKeySocket.send(out)
                 ans_bytes = self.clientToKeySocket.recv(1024)
-                ans_bytes = symmetricKeying.symmDecrypt(ans_bytes, self.Keyserver_symkey)
+                ans_bytes = symm_decrypt(ans_bytes, self.keyserver_symkey)
                 ans_bs = ByteStream(ans_bytes)
                 ans = ans_bs.content
                 print(ans)
@@ -241,10 +228,10 @@ class Client:
                     self.encrypted_username = ans
                     print("Received encrypted username:", str(ans))
 
-                    out = username + " - "+str(ans)
-                    byteStreamOut = ByteStream(ByteStreamType.registertomain, out)
-                    out = byteStreamOut.outStream
-                    out = symmetricKeying.symmEncrypt(out, self.Mainserver_symkey)
+                    out = username + " - " + str(ans)
+                    byte_stream_out = ByteStream(ByteStreamType.registertomain, out)
+                    out = byte_stream_out.outStream
+                    out = symm_encrypt(out, self.mainserver_symkey)
                     self.clientToMainSocket.send(out)
 
                     return RegisterErrorType.NoError
@@ -257,9 +244,9 @@ class Client:
     def get_conversations(self):
         # request all the user's conversation from the server
 
-        #first: get all message id's of which the user is a member
-        byteStreamOut = ByteStream(byteStreamType.ByteStreamType.requestallids,"")
-        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+        # first: get all message id's of which the user is a member
+        byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.requestallids, "")
+        out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
         self.clientToMainSocket.send(out)
 
         time.sleep(0.5)
@@ -267,76 +254,76 @@ class Client:
         return self.all_conversation_members
 
     def get_one_conversation(self, id):
-        byteStreamOut = ByteStream(byteStreamType.ByteStreamType.getconversation, id)
-        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+        byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.getconversation, id)
+        out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
         self.clientToMainSocket.send(out)
 
         rcvd = self.clientToMainSocket.recv(1024)
-        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Mainserver_symkey)
-        byteStreamIn = ByteStream(rcvd)
-        if byteStreamIn.messageType == ByteStreamType.conversation:
-            encoded_conversation = byteStreamIn.content
+        rcvd = symm_decrypt(rcvd, self.mainserver_symkey)
+        byte_stream_in = ByteStream(rcvd)
+        if byte_stream_in.messageType == ByteStreamType.conversation:
+            encoded_conversation = byte_stream_in.content
             conv = Conversation(None, None)
             conv.decode_conversation(encoded_conversation)
             return conv
 
     def first_message_to_server(self):
-        byteStreamOut = ByteStream(ByteStreamType.keyrequest, self.pubKey)
-        outstream = byteStreamOut.outStream
+        byte_stream_out = ByteStream(ByteStreamType.keyrequest, self.pub_key)
+        out_stream = byte_stream_out.outStream
         print("Cl sends own pubkey:")
-        print(self.pubKey)
-        self.clientToMainSocket.send(outstream)
+        print(self.pub_key)
+        self.clientToMainSocket.send(out_stream)
 
-        #wait until server repplies with own public key
+        # wait until server replies with own public key
         rcvd = self.clientToMainSocket.recv(1024)
 
-        byteStreamIn = ByteStream(rcvd)
-        if (byteStreamIn.messageType == ByteStreamType.pubkeyanswer):
-            self.Mainserver_pubkey = asymmetricKeying.string_to_pubkey(byteStreamIn.content)
+        byte_stream_in = ByteStream(rcvd)
+        if (byte_stream_in.messageType == ByteStreamType.pubkeyanswer):
+            self.mainserver_pubkey = string_to_pubkey(byte_stream_in.content)
             print("Cl receives KS pubkey:")
-            print(self.Mainserver_pubkey)
+            print(self.mainserver_pubkey)
 
         rcvd = self.clientToMainSocket.recv(1024)
         print("Cl receives symm key, encrypted")
         print(rcvd)
-        rcvd = rsa_receive(rcvd, self.Mainserver_pubkey, self.privKey)
+        rcvd = rsa_receive(rcvd, self.mainserver_pubkey, self.priv_key)
         print(rcvd)
-        byteStreamIn = ByteStream(rcvd)
-        print(byteStreamIn.messageType)
-        if (byteStreamIn.messageType == ByteStreamType.symkeyanswer):
-            print(byteStreamIn.content)
-            self.Mainserver_symkey = symmetricKeying.strToSymkey(byteStreamIn.content)
+        byte_stream_in = ByteStream(rcvd)
+        print(byte_stream_in.messageType)
+        if (byte_stream_in.messageType == ByteStreamType.symkeyanswer):
+            print(byte_stream_in.content)
+            self.mainserver_symkey = str_to_symkey(byte_stream_in.content)
             print("Cl decrypts symm key")
-            print(self.Mainserver_symkey)
+            print(self.mainserver_symkey)
 
     def first_message_to_keyserver(self):
-        byteStreamOut = ByteStream(ByteStreamType.keyrequest, self.pubKey)
-        outstream = byteStreamOut.outStream
+        byte_stream_out = ByteStream(ByteStreamType.keyrequest, self.pub_key)
+        out_stream = byte_stream_out.outStream
         print("Cl sends own pubkey:")
-        print(self.pubKey)
-        self.clientToKeySocket.send(outstream)
+        print(self.pub_key)
+        self.clientToKeySocket.send(out_stream)
 
-        # wait until server repplies with own public key
+        # wait until server replies with own public key
         rcvd = self.clientToKeySocket.recv(1024)
 
-        byteStreamIn = ByteStream(rcvd)
-        if (byteStreamIn.messageType == ByteStreamType.pubkeyanswer):
-            self.Keyserver_pubkey = asymmetricKeying.string_to_pubkey(byteStreamIn.content)
+        byte_stream_in = ByteStream(rcvd)
+        if (byte_stream_in.messageType == ByteStreamType.pubkeyanswer):
+            self.keyserver_pubkey = string_to_pubkey(byte_stream_in.content)
             print("Cl receives KS pubkey:")
-            print(self.Keyserver_pubkey)
+            print(self.keyserver_pubkey)
 
         rcvd = self.clientToKeySocket.recv(1024)
         print("Cl receives symm key, encrypted")
         print(rcvd)
-        rcvd = rsa_receive(rcvd, self.Keyserver_pubkey, self.privKey)
+        rcvd = rsa_receive(rcvd, self.keyserver_pubkey, self.priv_key)
         print(rcvd)
-        byteStreamIn = ByteStream(rcvd)
-        print(byteStreamIn.messageType)
-        if (byteStreamIn.messageType == ByteStreamType.symkeyanswer):
-            print(byteStreamIn.content)
-            self.Keyserver_symkey = symmetricKeying.strToSymkey(byteStreamIn.content)
+        byte_stream_in = ByteStream(rcvd)
+        print(byte_stream_in.messageType)
+        if (byte_stream_in.messageType == ByteStreamType.symkeyanswer):
+            print(byte_stream_in.content)
+            self.keyserver_symkey = str_to_symkey(byte_stream_in.content)
             print("Cl decrypts symm key")
-            print(self.Keyserver_symkey)
+            print(self.keyserver_symkey)
 
     def send_message(self, members, msg):
         members.append(self.user.username)
@@ -349,20 +336,20 @@ class Client:
             else:
                 total_string = total_string + " - " + m
 
-        id = hashString(total_string)
+        id = hash_string(total_string)
 
         print("CL sends msg: ", msg)
         for conversation in self.conversations:
             if id == conversation.id:
                 # save message in conversation
-                conversation.add_message(Message(self.user.username,msg))
-        byteStreamOut = ByteStream(ByteStreamType.message, (id) + " - " + msg)
-        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+                conversation.add_message(Message(self.user.username, msg))
+        byte_stream_out = ByteStream(ByteStreamType.message, (id) + " - " + msg)
+        out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
         self.clientToMainSocket.send(out)
 
     def request_contacts(self):
-        req_bs = ByteStream(byteStreamType.ByteStreamType.contactrequest, "")
-        out = symmetricKeying.symmEncrypt(req_bs.outStream, self.Mainserver_symkey)
+        req_bs = ByteStream(byte_stream_type.ByteStreamType.contactrequest, "")
+        out = symm_encrypt(req_bs.outStream, self.mainserver_symkey)
         print("contactrequest sent")
         self.clientToMainSocket.send(out)
 
@@ -370,7 +357,7 @@ class Client:
         return self.contacts
 
     def start_conversation(self, contact_usernames):
-        #contacts = self.get_contacts()
+        # contacts = self.get_contacts()
 
         print("starting conv")
         contact_usernames.append(self.user.username)
@@ -383,26 +370,26 @@ class Client:
             else:
                 total_string = total_string + " - " + username
 
-        id = hashString(total_string)
-        print("Generated conv ID= ",id)
-        #start conversation by letting the key server now a key should be created
-        byteStreamOut = ByteStream(ByteStreamType.newconversation, id)
-        out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Keyserver_symkey)
+        id = hash_string(total_string)
+        print("Generated conv ID= ", id)
+        # start conversation by letting the key server now a key should be created
+        byte_stream_out = ByteStream(ByteStreamType.newconversation, id)
+        out = symm_encrypt(byte_stream_out.outStream, self.keyserver_symkey)
         self.clientToKeySocket.send(out)
 
         rcvd = self.clientToKeySocket.recv(1024)
-        rcvd = symmetricKeying.symmDecrypt(rcvd, self.Keyserver_symkey)
-        byteStreamIn = ByteStream(rcvd)
-        if byteStreamIn.messageType == ByteStreamType.symkeyanswer:
-            conversationkey = symmetricKeying.strToSymkey(byteStreamIn.content)
-            print("Received conv symkey: ", str(conversationkey))
-            self.knownconversationkeys[id]=conversationkey
+        rcvd = symm_decrypt(rcvd, self.keyserver_symkey)
+        byte_stream_in = ByteStream(rcvd)
+        if byte_stream_in.messageType == ByteStreamType.symkeyanswer:
+            conversation_key = str_to_symkey(byte_stream_in.content)
+            print("Received conv symkey: ", str(conversation_key))
+            self.known_conversation_keys[id] = conversation_key
 
-            byteStreamOut = ByteStream(ByteStreamType.newconversation, total_string)
-            out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
+            byte_stream_out = ByteStream(ByteStreamType.newconversation, total_string)
+            out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
             self.clientToMainSocket.send(out)
 
-    def logout(self):
+    def log_out(self):
         # go back to begin screen
         user = None
         conversations = None
@@ -410,6 +397,3 @@ class Client:
         # in a way, the keys of the previous user are still saved at the client.
         # so maybe, implement a signal to let the keyServer know that some client has logged out,
         # and hence it should create new keys for the conversations of the client
-
-
-

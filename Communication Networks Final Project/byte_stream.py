@@ -1,6 +1,6 @@
 import byte_stream_type
 from byte_stream_error_types import *
-from customError import *
+from custom_error import *
 import re
 
 

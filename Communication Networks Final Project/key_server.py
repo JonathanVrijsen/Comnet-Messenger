@@ -109,7 +109,7 @@ class keyServer:
             connectionSocket = connectedClient.connectionSocket
             rcvd = connectionSocket.recv(1024)
             print("RECEIVED")
-            rcvd = symmetricKeying.symmDecrypt(rcvd, connectedClient.symKey)
+            rcvd = symmetricKeying.symm_decrypt(rcvd, connectedClient.symKey)
             print(rcvd)
             byteStreamIn = ByteStream(rcvd)
             type = byteStreamIn.messageType
@@ -128,11 +128,11 @@ class keyServer:
                     print(username)
                     print(password)
                     self.database.append((username, password))
-                    sign = symmetricKeying.symmEncrypt(username.encode('ascii'), self.serverCommonKey)
+                    sign = symmetricKeying.symm_encrypt(username.encode('ascii'), self.serverCommonKey)
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, str(sign))
                     print("Encrypted Username:", str(sign))
 
-                out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(answer_bs.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
             elif type == ByteStreamType.loginrequest:
@@ -151,7 +151,7 @@ class keyServer:
 
                 else:
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "usernonexistent")
-                out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(answer_bs.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
             elif type == ByteStreamType.passwordanswer:
@@ -166,7 +166,7 @@ class keyServer:
                         break
 
                 if password_correct:
-                    sign = symmetricKeying.symmEncrypt(username.encode('ascii'), self.serverCommonKey)
+                    sign = symmetricKeying.symm_encrypt(username.encode('ascii'), self.serverCommonKey)
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordcorrect, str(sign))
 
                     newUser = User(connectedClient.user.username, password)
@@ -175,7 +175,7 @@ class keyServer:
                     print("password incorrect!!")
                     answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordwrong, "")
 
-                out = symmetricKeying.symmEncrypt(answer_bs.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(answer_bs.outStream, connectedClient.symKey)
                 connectionSocket.send(out)
 
             elif type == ByteStreamType.newconversation:
@@ -186,7 +186,7 @@ class keyServer:
 
                 print("KS sends conv symkey: ", str(conversation_key))
                 byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectedClient.connectionSocket.send(out)
 
             elif type == ByteStreamType.requestconversationkey:
@@ -195,7 +195,7 @@ class keyServer:
                 conversation_key = self.conversationkeys[id]
 
                 byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
-                out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, connectedClient.symKey)
+                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
                 connectedClient.connectionSocket.send(out)
 
 
