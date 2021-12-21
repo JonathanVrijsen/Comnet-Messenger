@@ -46,8 +46,12 @@ as long as python and the used libraries are compatible for that operating syste
 Upon compilation, three windows are opened. the window allowing you to create clients, 
 the central messaging server and the key server are launched.
 
-<img alt="Main menu" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/Available%20-%20MainMenu.png" title="Main menu"/>
-<img alt="Main Menu" src="/Users/louisvaneeckhoudt/Desktop/Available - MainMenu.png" title="Main Menu" width="500"/>
+<img alt="Main menu" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_MainMenu.png" title="Main menu"/>
+<img alt="Server overview" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_ServerOverView.png" title="Server overview"/>
+<img alt="Login screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_LoginScreen.png" title="Login screen"/>
+<img alt="Message screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_MessageScreen.png" title="Message screen"/>
+
+
 
 ## Contributors
 
