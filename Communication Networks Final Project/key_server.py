@@ -28,7 +28,7 @@ class KeyServer:
 
     def __init__(self):
 
-        self.server_port = 12002
+        self.server_port = 15025
         self.stop_port = 12013
         self.server_ip = '127.0.0.1'
 
@@ -65,7 +65,7 @@ class KeyServer:
 
 
     def broadcast_addr(self):
-        interfaces = getaddrinfo(host=getghostname(), port=None, family=AF_INET)
+        interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
         allips = [ip[-1][0] for ip in interfaces]
 
         msg = "KS_Addr" + ";;;" + self.server_ip + ";;;" + str(self.server_port)
