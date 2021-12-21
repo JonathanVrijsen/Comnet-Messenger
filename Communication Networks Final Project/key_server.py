@@ -3,11 +3,11 @@ import threading
 from math import floor
 from random import getrandbits
 from socket import *
-import asymmetricKeying
-import symmetricKeying
-from byteStreamType import *
+import asymmetric_keying
+import symmetric_keying
+from byte_stream_type import *
 from cryptography.fernet import Fernet
-from byteStream import *
+from byte_stream import *
 from server import ConnectedClient
 from user import User
 

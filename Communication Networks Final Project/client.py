@@ -2,17 +2,17 @@ import hashlib
 import threading
 import time
 
-import asymmetricKeying
-import byteStreamType
+import asymmetric_keying
+import byte_stream_type
 from conversation import *
-import symmetricKeying
-from asymmetricKeying import *
+import symmetric_keying
+from asymmetric_keying import *
 from message import Message
 from user import User
 from socket import *
-from RegErrorTypes import *
-from byteStream import *
-from byteStreamType import *
+from reg_error_types import *
+from byte_stream import *
+from byte_stream_type import *
 from cryptography.fernet import Fernet
 import time
 

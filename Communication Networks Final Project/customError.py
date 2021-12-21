@@ -1,5 +1,5 @@
-import byteStreamErrorTypes
-import ServerErrorTypes
+import byte_stream_error_types
+import server_error_types
 
 class CustomError(Exception):
     def __init__(self, error_type):

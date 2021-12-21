@@ -1,5 +1,5 @@
-import byteStreamType
-from byteStreamErrorTypes import *
+import byte_stream_type
+from byte_stream_error_types import *
 from customError import *
 import re
 

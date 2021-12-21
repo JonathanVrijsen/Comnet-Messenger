@@ -1,15 +1,15 @@
 from cryptography.fernet import Fernet
 
-import byteStreamType
-import symmetricKeying
-from byteStream import ByteStream
-from byteStreamType import ByteStreamType
+import byte_stream_type
+import symmetric_keying
+from byte_stream import ByteStream
+from byte_stream_type import ByteStreamType
 from user import User
 from socket import *
 from conversation import Conversation
 from message import Message
 import threading
-import asymmetricKeying
+import asymmetric_keying
 
 class ConnectedClient:
     user = None

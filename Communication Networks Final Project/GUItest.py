@@ -12,9 +12,9 @@ from server_window_ui import Ui_ServerWind
 from threading import *
 
 from client import *
-from RegErrorTypes import *
+from reg_error_types import *
 from server import *
-from keyServer import *
+from key_server import *
 
 import time
 

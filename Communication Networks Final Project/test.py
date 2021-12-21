@@ -30,7 +30,7 @@ from cryptography.fernet import Fernet
 # print(y.hexdigest())
 import conversation
 import message
-import symmetricKeying
+import symmetric_keying
 
 id = symmetricKeying.hashString("josjan")
 print(id)
