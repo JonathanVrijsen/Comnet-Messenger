@@ -62,6 +62,7 @@ From this window, one can register new users and log into their account.
 Once logged in using the correct username and password, the user's conversations are shown.
 When a specific conversation is selected in the list on the left-hand side, 
 all the messages are shown in the window.
+
 <img alt="Message screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_MessageScreen.png" title="Message screen"/>
 
 ### Creating new conversation
@@ -71,10 +72,12 @@ all the messages are shown in the window.
 ### Logout
 
 
+
+
 ## Contributors
 
-| [Jonathan Vrijsen](https://github.com/JonathanVrijsen)   | [Wannes Nevens](https://github.com/WannesN) | [Sam Van de Velde](https://github.com/SamVandeVelde) | [Louis Van Eeckhoudt](https://github.com/Louis-Van-Eeckhoudt) |
-|----------------------------------------------------------|---------------------------------------------|------------------------------------------------------|---------------------------------------------------------------|
+| <img src="https://avatars.githubusercontent.com/u/84011890?v=4" width="150"/> [Jonathan Vrijsen](https://github.com/JonathanVrijsen) | <img src="https://avatars.githubusercontent.com/u/49029691?v=4" width="150"/>[Wannes Nevens](https://github.com/WannesN) | <img src="https://avatars.githubusercontent.com/u/58397500?v=4" width="150"/>[Sam Van de Velde](https://github.com/SamVandeVelde) | <img src="https://avatars.githubusercontent.com/u/62985294?v=4" width="150"/>[Louis Van Eeckhoudt](https://github.com/Louis-Van-Eeckhoudt) |
+|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 
 
 
