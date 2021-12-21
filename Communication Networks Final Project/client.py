@@ -10,6 +10,7 @@ from reg_error_types import *
 from byte_stream import *
 from byte_stream_type import *
 import time
+import errno
 
 
 def hash_string(input_string):
@@ -31,9 +32,35 @@ class Client:
         self.own_ip = "127.0.0.1"
         (self.pub_key, self.priv_key) = generate_keys()
 
-        (self.server_ip, self.server_socket, self.key_server_ip, self.key_server_socket) = self.get_server_information()
+        self.currentThreads = []
+        self.all_conversation_members = []
+        self.all_conversations_received = False
+
+        self.contacts = []
+        self.known_conversation_keys = dict()
+
+        self.conversations = []
+
+        self.stop_all_threads = False
+
+        self.KS_found = False
+        self.MS_found = False
+
+        self.key_server_ip = None
+        self.key_server_socket = None
+
+        broadcast_thread = threading.Thread(target=self.listen_for_broadcast)
+        broadcast_thread.start()
+        self.currentThreads.append(broadcast_thread)
+
+        while not(self.KS_found and self.MS_found):
+            time.sleep(1)
+
+
+
 
         self.clientToMainSocket = socket(AF_INET, SOCK_STREAM)
+
         self.clientToMainSocket.connect((self.server_ip, self.server_socket))
         self.mainserver_pubkey = None
         self.mainserver_symkey = None
@@ -43,20 +70,43 @@ class Client:
         self.keyserver_pubkey = ""
         self.keyserver_symkey = ""
 
-        self.currentThreads = []
-        self.all_conversation_members = []
-        self.all_conversations_received = False
+
 
         self.first_message_to_keyserver()
         self.first_message_to_server()
 
         # self.clientToKeySocket.send(reg_bs.outStream)
-        self.contacts = []
-        self.known_conversation_keys = dict()
 
-        self.conversations = []
 
-        self.stop_all_threads = False
+    def listen_for_broadcast(self):
+        while not(self.KS_found and self.MS_found):
+            sock = socket(AF_INET, SOCK_DGRAM)
+            sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+            try:
+                sock.bind(("0.0.0.0", 5005))
+                data, addr = sock.recvfrom(1024)
+                sock.close()
+                data = data.decode("utf-8")
+                print(data)
+                data = data.split(";;;")
+                if data[0] == "KS_Addr":
+                    self.KS_found = True
+                    self.key_server_ip = data[1]
+                    self.key_server_socket = int(data[2])
+                    print(data)
+                elif data[0] == "MS_Addr":
+                    self.MS_found = True
+                    self.server_ip = data[1]
+                    self.server_socket = int(data[2])
+                    print(data)
+                time.sleep(0.27)
+            except error as e:
+                if e.errno == errno.EADDRINUSE:
+                    print("Can't listen on broadcast: already in use")
+                sock.close()
+                time.sleep(0.1)
+
+
 
     def login(self, username, password):
         password = hash_string(password)  # since only hashed version of password is transmitted
@@ -150,6 +200,7 @@ class Client:
                         break
             elif byte_stream_in.messageType == ByteStreamType.contactanswer:
                 self.contacts = byte_stream_in.content.split(" - ")
+                self.contacts.remove(self.user.username)
                 print("received: ", self.contacts)
                 # TODO add message to conversation
 
@@ -383,6 +434,7 @@ class Client:
         self.clientToMainSocket.send(out)
 
     def get_contacts(self):
+
         return self.contacts
 
     def start_conversation(self, contact_usernames):

@@ -1,5 +1,8 @@
+import json
+import errno
 import re
 import threading
+import time
 from math import floor
 from random import getrandbits
 from socket import *
@@ -15,7 +18,6 @@ from symmetric_keying import *
 
 
 class KeyServer:
-    userArray = None
     server_port = None
     server_socket = None
     stop_socket = None
@@ -25,7 +27,6 @@ class KeyServer:
     conversationKeys = None  # tuple of (id, symmetric key)
 
     def __init__(self):
-        self.userArray = []
 
         self.server_port = 12002
         self.stop_port = 12013
@@ -50,9 +51,42 @@ class KeyServer:
 
         f_key = open("serverCommonKey.txt",'rb')
         self.server_common_key = f_key.read()
+        f_key.close()
 
         self.database = []
         self.conversation_keys = dict()
+
+        broadcast_thread = threading.Thread(target = self.broadcast_addr)
+        broadcast_thread.start()
+        self.current_threads.append(broadcast_thread)
+
+    def broadcast_addr(self):
+        interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
+        allips = [ip[-1][0] for ip in interfaces]
+
+        msg = "KS_Addr" + ";;;" + self.server_ip + ";;;" + str(self.server_port)
+        msgb = msg.encode("ascii")
+
+        time.sleep(0.2)
+
+        while True:
+            if self.stop_all_threads:
+                break
+
+            for ip in allips:
+                sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)  # UDP
+                sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+                try:
+                    sock.bind((ip, 0))
+                    sock.sendto(msgb, ("255.255.255.255", 5005))
+                    sock.close()
+                    time.sleep(0.37)
+                except error as e:
+                    if e.errno == errno.EADDRINUSE:
+                        print("KS can't listen on broadcast: already in use")
+                    sock.close()
+                    time.sleep(0.1)
+
 
     def listen(self):
         self.server_socket.listen(64)
@@ -226,8 +260,23 @@ class KeyServer:
         rcvd_content = connection_socket.recv(1024)
 
         return rcvd_content.decode("utf-8"), addr
+    def store_keys(self):
+        ids = self.conversation_keys.keys()
+        file = open("conversation_keys.txt", "w")
+        file.truncate(0)
+        for id in ids:
+            #make json string
+            json_dict = dict()
+            json_dict["id"] = id
+            json_dict["key"] = self.conversation_keys[id].decode('ascii')
+
+            json_string = json.dumps(json_dict)
+            file.write(json_string + "\n")
+
+        file.close()
 
     def stop_listening(self):
+        self.store_keys()
         b = bytes('1', 'utf-8')
         self.stop_all_threads = True
         self.stop_socket.connect((self.server_ip, self.server_port))
