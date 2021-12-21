@@ -11,13 +11,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(584, 574)
-        self.gridLayout = QtWidgets.QGridLayout(Form)
+class UIForm(object):
+    def setup_ui(self, form):
+        form.setObjectName("Form")
+        form.resize(584, 574)
+        self.gridLayout = QtWidgets.QGridLayout(form)
         self.gridLayout.setObjectName("gridLayout")
-        self.stackedWidget = QtWidgets.QStackedWidget(Form)
+        self.stackedWidget = QtWidgets.QStackedWidget(form)
         self.stackedWidget.setObjectName("stackedWidget")
         self.page = QtWidgets.QWidget()
         self.page.setObjectName("page")
@@ -39,11 +39,11 @@ class Ui_Form(object):
         self.label.setObjectName("label")
         self.horizontalLayout_2.addWidget(self.label)
         self.H_usernameBox = QtWidgets.QTextEdit(self.page)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.H_usernameBox.sizePolicy().hasHeightForWidth())
-        self.H_usernameBox.setSizePolicy(sizePolicy)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.H_usernameBox.sizePolicy().hasHeightForWidth())
+        self.H_usernameBox.setSizePolicy(size_policy)
         self.H_usernameBox.setMinimumSize(QtCore.QSize(0, 30))
         self.H_usernameBox.setMaximumSize(QtCore.QSize(16777215, 30))
         self.H_usernameBox.setObjectName("H_usernameBox")
@@ -63,8 +63,8 @@ class Ui_Form(object):
         self.H_LoginButton = QtWidgets.QPushButton(self.page)
         self.H_LoginButton.setObjectName("H_LoginButton")
         self.verticalLayout.addWidget(self.H_LoginButton)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
+        spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacer_item)
         self.gridLayout_2.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.stackedWidget.addWidget(self.page)
         self.page_2 = QtWidgets.QWidget()
@@ -77,8 +77,8 @@ class Ui_Form(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem1)
+        spacer_item1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacer_item1)
         self.H_LogoutButton = QtWidgets.QPushButton(self.page_2)
         self.H_LogoutButton.setMaximumSize(QtCore.QSize(16777215, 24))
         self.H_LogoutButton.setObjectName("H_LogoutButton")
@@ -117,13 +117,13 @@ class Ui_Form(object):
         self.stackedWidget.addWidget(self.page_2)
         self.gridLayout.addWidget(self.stackedWidget, 1, 0, 1, 1)
 
-        self.retranslateUi(Form)
+        self.retranslate_ui(form)
         self.stackedWidget.setCurrentIndex(1)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, Form):
+    def retranslate_ui(self, form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        form.setWindowTitle(_translate("Form", "Form"))
         self.h_titleLabel.setText(_translate("Form", "Login: "))
         self.label.setText(_translate("Form", "Username:"))
         self.label_2.setText(_translate("Form", "Password:"))

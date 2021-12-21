@@ -10,9 +10,11 @@ from cryptography.fernet import Fernet
 from byte_stream import *
 from server import ConnectedClient
 from user import User
+from asymmetric_keying import *
+from symmetric_keying import *
 
 
-class keyServer:
+class KeyServer:
     userArray = None
     serverPort = None
     serverSocket = None
@@ -37,7 +39,7 @@ class keyServer:
         self.serverSocket.bind(('127.0.0.1', self.serverPort))  # '' contains addresses, when empty it means all
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
 
-        (self.pubKey, self.privKey) = asymmetricKeying.generate_keys()
+        (self.pubKey, self.privKey) = generate_keys()
 
         self.currentThreads = []
         self.connectedClients = []
@@ -45,71 +47,71 @@ class keyServer:
         self.username_password_pairs = []  # already registered users
         #self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
-        fkey = open("serverCommonKey.txt",'rb')
-        self.serverCommonKey = fkey.read()
+        f_key = open("serverCommonKey.txt",'rb')
+        self.serverCommonKey = f_key.read()
 
         self.database = []
-        self.conversationkeys = dict()
+        self.conversation_keys = dict()
 
     def listen(self):
         self.serverSocket.listen(64)
-        connectionSocket, addr = self.serverSocket.accept()
-        rcvdContent = connectionSocket.recv(1024)
+        connection_socket, addr = self.serverSocket.accept()
+        rcvd_content = connection_socket.recv(1024)
 
         # check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
-        byteStreamIn = ByteStream(rcvdContent)
-        if (byteStreamIn.messageType == ByteStreamType.keyrequest):
-            clientPubKey = asymmetricKeying.string_to_pubkey(byteStreamIn.content)
+        byte_stream_in = ByteStream(rcvd_content)
+        if (byte_stream_in.messageType == ByteStreamType.keyrequest):
+            client_pub_key = string_to_pubkey(byte_stream_in.content)
             print("KS receivers client pubkey:")
-            print(clientPubKey)
+            print(client_pub_key)
 
         print("KS sends own pubkey:")
         print(self.pubKey)
         # send own public key to client
-        byteStreamOut = ByteStream(ByteStreamType.pubkeyanswer, self.pubKey)
-        connectionSocket.send(byteStreamOut.outStream)  # send own public key
+        byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pubKey)
+        connection_socket.send(byte_stream_out.outStream)  # send own public key
 
         # encrypt symmetric key and send to client
-        newSymKey = Fernet.generate_key()
+        new_sym_key = Fernet.generate_key()
         print("KS sends symkey:")
-        print(newSymKey)
-        msg_bs = ByteStream(ByteStreamType.symkeyanswer, newSymKey)
-        msg = asymmetricKeying.rsa_sendable(msg_bs.outStream, self.privKey, clientPubKey)
+        print(new_sym_key)
+        msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
+        msg = rsa_sendable(msg_bs.outStream, self.privKey, client_pub_key)
         print("KS sends symkey, encrypted")
         print(msg)
-        connectionSocket.send(msg)
+        connection_socket.send(msg)
 
         #create new connected client
-        newConnectedClient = ConnectedClient(connectionSocket, newSymKey, clientPubKey)
-        self.connectedClients.append(newConnectedClient)
+        new_connected_client = ConnectedClient(connection_socket, new_sym_key, client_pub_key)
+        self.connectedClients.append(new_connected_client)
 
 
         # launch new thread dedicated to connectedClient
-        newThread = threading.Thread(target=self.connected_user_listen, args=(newConnectedClient,))
-        self.currentThreads.append(newThread)
-        newThread.start()
+        new_thread = threading.Thread(target=self.connected_user_listen, args=(new_connected_client,))
+        self.currentThreads.append(new_thread)
+        new_thread.start()
 
 
 
 
-        #newThread = threading.Thread(target=self.handle_message, args=(rcvdContent, connectionSocket,))
-        #newThread.start()
-        #self.currentThreads.append(newThread)
+        #new_thread = threading.Thread(target=self.handle_message, args=(rcvd_content, connection_socket,))
+        #new_thread.start()
+        #self.currentThreads.append(new_thread)
 
-    def listen_for_password(self, connectionSocket):
-        rcvdContent = connectionSocket.recv(1024)
+    def listen_for_password(self, connection_socket):
+        rcvd_content = connection_socket.recv(1024)
         print("content rec listen for password")
-        if rcvdContent != b"":
+        if rcvd_content != b"":
             print("content not empty listen for password")
-            print(rcvdContent)
-            self.handle_message(rcvdContent, connectionSocket)
+            print(rcvd_content)
+            self.handle_message(rcvd_content, connection_socket)
 
-    def connected_user_listen(self, connectedClient):
-        while connectedClient.active:
-            connectionSocket = connectedClient.connectionSocket
-            rcvd = connectionSocket.recv(1024)
+    def connected_user_listen(self, connected_client):
+        while connected_client.active:
+            connection_socket = connected_client.connectionSocket
+            rcvd = connection_socket.recv(1024)
             print("RECEIVED")
-            rcvd = symmetricKeying.symm_decrypt(rcvd, connectedClient.symKey)
+            rcvd = symm_decrypt(rcvd, connected_client.symKey)
             print(rcvd)
             byteStreamIn = ByteStream(rcvd)
             type = byteStreamIn.messageType
@@ -119,21 +121,21 @@ class keyServer:
                 print(type)
                 print(content)
                 (username, password) = content.split(' - ', 1)
-                if self.check_existense_of_account(username):
+                if self.check_existence_of_account(username):
                     print("EXISTS")
                     # raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, "failed")
+                    answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, "failed")
                 else:
                     print("DOES NOT EXIST")
                     print(username)
                     print(password)
                     self.database.append((username, password))
-                    sign = symmetricKeying.symm_encrypt(username.encode('ascii'), self.serverCommonKey)
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.registeranswer, str(sign))
+                    sign = symm_encrypt(username.encode('ascii'), self.serverCommonKey)
+                    answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, str(sign))
                     print("Encrypted Username:", str(sign))
 
-                out = symmetricKeying.symm_encrypt(answer_bs.outStream, connectedClient.symKey)
-                connectionSocket.send(out)
+                out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
+                connection_socket.send(out)
 
             elif type == ByteStreamType.loginrequest:
                 user_exists = False
@@ -145,19 +147,19 @@ class keyServer:
                         user_exists = True
 
                 if user_exists:
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordrequest, "sendpassword")
-                    newUser = User(username)
-                    connectedClient.set_user(newUser) #notice: password not yet given, so client isn't able yet to receive keys
+                    answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordrequest, "sendpassword")
+                    new_user = User(username)
+                    connected_client.set_user(new_user) #notice: password not yet given, so client isn't able yet to receive keys
 
                 else:
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.loginanswer, "usernonexistent")
-                out = symmetricKeying.symm_encrypt(answer_bs.outStream, connectedClient.symKey)
-                connectionSocket.send(out)
+                    answer_bs = ByteStream(byte_stream_type.ByteStreamType.loginanswer, "usernonexistent")
+                out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
+                connection_socket.send(out)
 
             elif type == ByteStreamType.passwordanswer:
                 password = content
                 password_correct = False
-                user = connectedClient.user
+                user = connected_client.user
                 username = user.username
 
                 for temp in self.database:
@@ -166,37 +168,37 @@ class keyServer:
                         break
 
                 if password_correct:
-                    sign = symmetricKeying.symm_encrypt(username.encode('ascii'), self.serverCommonKey)
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordcorrect, str(sign))
+                    sign = symm_encrypt(username.encode('ascii'), self.serverCommonKey)
+                    answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordcorrect, str(sign))
 
-                    newUser = User(connectedClient.user.username, password)
-                    connectedClient.set_user(newUser)  # user set with password, client can obtain keys
+                    new_user = User(connected_client.user.username, password)
+                    connected_client.set_user(new_user)  # user set with password, client can obtain keys
                 else:
                     print("password incorrect!!")
-                    answer_bs = ByteStream(byteStreamType.ByteStreamType.passwordwrong, "")
+                    answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordwrong, "")
 
-                out = symmetricKeying.symm_encrypt(answer_bs.outStream, connectedClient.symKey)
-                connectionSocket.send(out)
+                out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
+                connection_socket.send(out)
 
             elif type == ByteStreamType.newconversation:
                 id = content
                 conversation_key = Fernet.generate_key()
 
-                self.conversationkeys[id] = conversation_key
+                self.conversation_keys[id] = conversation_key
 
                 print("KS sends conv symkey: ", str(conversation_key))
-                byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
-                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
-                connectedClient.connectionSocket.send(out)
+                byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
+                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                connected_client.connectionSocket.send(out)
 
             elif type == ByteStreamType.requestconversationkey:
                 ##TODO verify user
                 id = content
-                conversation_key = self.conversationkeys[id]
+                conversation_key = self.conversation_keys[id]
 
-                byteStreamOut = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
-                out = symmetricKeying.symm_encrypt(byteStreamOut.outStream, connectedClient.symKey)
-                connectedClient.connectionSocket.send(out)
+                byte_stream_out = ByteStream(ByteStreamType.symkeyanswer, conversation_key)
+                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                connected_client.connectionSocket.send(out)
 
 
         # step: decode message using private key and
@@ -204,10 +206,10 @@ class keyServer:
         # if allright, create public and private key and send to receiver over temporary secure channel
         # step: if login request, check combo and send to receiver over temporary secure channel
 
-    def getUsers(self):
+    def get_users(self):
         return self.database
 
-    def getConnectedClients(self):
+    def get_connected_clients(self):
         return self.connectedClients
 
     def listen_silently(self):
@@ -225,7 +227,7 @@ class keyServer:
         self.stopSocket.close()
 
     def get_password(self, login):
-        return self.find_in_sorted_list(login)[0]
+        return self.find_in_list(login)[0]
         pass
 
     def add_user(self, login, password):
@@ -240,19 +242,13 @@ class keyServer:
     def write(self, location):
         pass
 
-    def check_existense_of_account(self, username):
+    def check_existence_of_account(self, username):
         for temp in self.database:
-            tempname = temp[0]
-            if tempname == username:
+            temp_name = temp[0]
+            if temp_name == username:
                 return True
 
         return False
 
-    def find_in_sorted_list(self, login):
+    def find_in_list(self, login):
         return self.database[login]
-#        bottom_index = 0
-#        top_index = len(self.database) - 1
-#        while True:
-#            middle_index = floor( (bottom_index+top_index) / 2)
-#            if middle_index
-#        pass
