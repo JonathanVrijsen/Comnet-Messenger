@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import *
 
 
 from main_window_ui import UIMainWindow
-from client_window_ui import UiForm
+from client_window_ui import Ui_Form
 from server_window_ui import UIServerWind
 
 from threading import *
@@ -51,10 +51,10 @@ class MainMenu(QMainWindow, UIMainWindow):
         app.closeAllWindows()
 
 
-class ClientWindow(QWidget, UiForm):
+class ClientWindow(QWidget, Ui_Form):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setup_ui(self)
+        self.setupUi(self)
         self.setWindowTitle("NewClient")
 
         self.H_passwordBox.setEchoMode(QLineEdit.Password)
@@ -148,6 +148,7 @@ class ClientWindow(QWidget, UiForm):
         receivers = []
         targets = self.H_ContactList.selectedItems()
         # targets is empty because self.H_ContactList.selectedItems() isn't on the GUI anymore
+
         for target in targets:
             receivers.append(target.text())
 
