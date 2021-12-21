@@ -101,15 +101,12 @@ class KeyServer:
 
         print(self.conversation_keys)
 
-
     def load_registered_users(self):
         f = open("registered_users.txt", "r")
         json_string = json.loads(f.read())
         for pair in json_string:
             self.database.append((pair[0], pair[1]))
         print(json_string)
-
-
 
     def listen(self):
         self.server_socket.listen(64)
@@ -269,7 +266,6 @@ class KeyServer:
             elif type == ByteStreamType.logout:
                 connected_client.user = None
 
-
     def get_users(self):
         return self.database
 
@@ -283,6 +279,7 @@ class KeyServer:
         rcvd_content = connection_socket.recv(1024)
 
         return rcvd_content.decode("utf-8"), addr
+
     def store_keys(self):
 
         ids = self.conversation_keys.keys()
@@ -309,7 +306,6 @@ class KeyServer:
             f.close()
 
             print(json_string)
-
 
     def stop_listening(self):
         self.store_keys()
