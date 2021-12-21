@@ -187,7 +187,6 @@ class Client:
             elif byte_stream_in.messageType == ByteStreamType.contactanswer:
                 self.contacts = byte_stream_in.content.split(" - ")
                 self.contacts.remove(self.user.username)
-                # TODO add message to conversation
 
             elif byte_stream_in.messageType == byte_stream_type.ByteStreamType.answerallids:
                 id_array = byte_stream_in.content
