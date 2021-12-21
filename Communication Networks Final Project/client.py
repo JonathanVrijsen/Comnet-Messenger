@@ -339,7 +339,7 @@ class Client:
             for message in conv.messages:
                 if not (conv.id in self.known_conversation_keys):
                     self.new_conversation(conv.id)
-                message.content=message.content[2:len(message.content)-1]
+                message.content = message.content[2:len(message.content)-1]
                 message.content = symm_decrypt(message.content.encode('ascii'), self.known_conversation_keys[conv.id])
                 message.content = message.content.decode('ascii')
             return conv

@@ -20,5 +20,6 @@ def symm_decrypt(msg, key):
 
 
 def str_to_symmkey(sym_key_str):
-    sym_key_str = sym_key_str[2:len(sym_key_str) - 1]
+    if sym_key_str[0]=='b' and sym_key_str[1]=='\'' and sym_key_str[len(sym_key_str)-1]=='\'':
+        sym_key_str = sym_key_str[2:len(sym_key_str) - 1]
     return bytes(sym_key_str, "utf-8")

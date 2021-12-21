@@ -18,7 +18,8 @@ class Conversation:
         messages_json_list = []
         members_json_list = []
         for m in self.messages:
-            messages_json_list.append(m.to_json)
+            message = [str(m.sender), str(m.content)]
+            messages_json_list.append(message)
         for m in self.members:
             members_json_list.append(m)
 

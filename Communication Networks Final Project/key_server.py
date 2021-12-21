@@ -99,7 +99,7 @@ class KeyServer:
                     pair = json.loads(json_key)
                     id = pair["id"]
                     key = pair["key"]
-                    self.conversation_keys[id] = key
+                    self.conversation_keys[id] = str(key)
 
     def load_registered_users(self):
         if os.path.isfile("registered_users.txt"):
@@ -291,7 +291,10 @@ class KeyServer:
                 #make json string
                 json_dict = dict()
                 json_dict["id"] = id
-                json_dict["key"] = self.conversation_keys[id].decode('ascii')
+                if not isinstance(self.conversation_keys[id], str):
+                    json_dict["key"] = self.conversation_keys[id].decode('ascii')
+                else:
+                    json_dict["key"]=self.conversation_keys[id]
 
                 json_string = json.dumps(json_dict)
                 file.write(json_string + "\n")

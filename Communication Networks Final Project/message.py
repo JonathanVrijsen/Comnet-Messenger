@@ -18,7 +18,7 @@ class Message:
         json_dict = dict()
         json_dict["sender"] = str(self.sender)
         json_dict["content"] = str(self.content)
-        return json_dict
+        return json.dumps(json_dict)
 
     def from_json(self, json_string):
         json_dict = json.loads(json_string)

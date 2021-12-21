@@ -44,6 +44,7 @@ class Server:
 
         self.known_users = set()  # empty set (basically list with unique elements)
         self.load_known_users()
+        self.load_conversation()
 
         self.server_port = 12100
         self.stop_port = 12110
@@ -68,10 +69,31 @@ class Server:
         if os.path.isfile("known_users_main_server.txt"):
             f = open("known_users_main_server.txt", "r")
             json_string = json.loads(f.read())
-            for username in json_string:
-                self.known_users.add(User(username))
+            if len(json_string) > 0:
+                for username in json_string:
+                    self.known_users.add(User(username))
             f.close()
             print(json_string)
+
+    def load_conversation(self):
+        if os.path.isfile("conversations.txt"):
+            f = open("conversations.txt", "r")
+            json_string = json.loads(f.read())
+            if len(json_string) > 0:
+                for conv_dict in json_string:
+                    id = conv_dict["id"]
+                    json_members = conv_dict["members"]
+                    members = json.loads(json_members)
+                    conversation = Conversation(members, id)
+                    messages = json.loads(conv_dict["messages"])
+                    for message in messages:
+                        sender = message[0]
+                        content = message[1]
+                        conversation.add_message(Message(sender, content))
+                    self.conversations.append(conversation)
+
+            f.close()
+
 
     def broadcast_addr(self):
         interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
@@ -97,7 +119,6 @@ class Server:
                         print("MS can't listen on broadcast: already in use")
                     sock.close()
                     time.sleep(0.1)
-
 
     def listen(self):
         self.server_socket.listen(64)
@@ -319,13 +340,15 @@ class Server:
         return self.connected_clients
 
     def store_conversations(self):
-        conv_json = []
-        for conv in self.conversations:
-            conv_json.append(conv.to_json())
+        if len(self.conversations) > 0:
+            conv_json = []
+            for conv in self.conversations:
+                conv_json.append(conv.to_json())
+            json_string = json.dumps(conv_json)
 
-        file = open("conversations.txt", "w")
-        json.dump(conv_json, file)
-        file.close()
+            file = open("conversations.txt", "w")
+            file.write(json_string)
+            file.close()
 
     def store_known_users(self):
         #since JSON cannot serialize sets, I believe
@@ -342,7 +365,7 @@ class Server:
 
 
     def stop_listening(self):
-        #self.store_conversations()
+        self.store_conversations()
         self.store_known_users()
         b = bytes('1', 'utf-8')
 
