@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
 
 from main_window_ui import Ui_MainWindow
-from client_window_ui import Ui_Form
+from client_window_ui import UiForm
 from server_window_ui import Ui_ServerWind
 
 from threading import *
@@ -50,10 +50,10 @@ class MainMenu(QMainWindow, Ui_MainWindow):
         app.closeAllWindows()
 
 
-class ClientWindow(QWidget, Ui_Form):
+class ClientWindow(QWidget, UiForm):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setupUi(self)
+        self.setup_ui(self)
         self.setWindowTitle("NewClient")
 
         self.H_passwordBox.setEchoMode(QLineEdit.Password)

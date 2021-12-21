@@ -3,7 +3,7 @@ from base64 import b64decode
 import rsa
 
 
-def generateKeys():
+def generate_keys():
     return rsa.newkeys(1024)
 
 
@@ -11,29 +11,29 @@ def encrypt(content, key):
     return rsa.encrypt(content, key)
 
 
-def decrypt(ciphercontent, key):
+def decrypt(cipher_content, key):
     try:
-        return rsa.decrypt(ciphercontent, key).decode('ascii')
+        return rsa.decrypt(cipher_content, key).decode('ascii')
     except:
         return False
 
 
-def signSHA1(content, key):
+def sign_sha1(content, key):
     return rsa.sign(content, key, 'SHA-1')
 
 
-def verifySHA1(content, signature, key):
+def verify_sha1(content, signature, key):
     try:
         return rsa.verify(content.encode('ascii'), signature, key) == 'SHA-1'
     except:
         return False
 
 
-def rsa_sendable(msg, privKeySender, pubKeyReceiver): #used by all the piers that need to send any content
+def rsa_sendable(msg, priv_key_sender, pub_key_receiver): #used by all the piers that need to send any content
     #assuming message is a string
 
-    cipher_msg = encrypt(msg, pubKeyReceiver)
-    signature = signSHA1(msg, privKeySender)
+    cipher_msg = encrypt(msg, pub_key_receiver)
+    signature = sign_sha1(msg, priv_key_sender)
     return signature + cipher_msg
 
 
@@ -43,7 +43,7 @@ def rsa_receive(cipher_msg, pubKeySender, privKeyReceiver):
 
     msg = decrypt(cipher_msg, privKeyReceiver)
 
-    if verifySHA1(msg, signature, pubKeySender):
+    if verify_sha1(msg, signature, pubKeySender):
         return msg
     else:
         return False
@@ -52,7 +52,7 @@ def string_to_pubkey(pubkeystr):
     f, l = pubkeystr.split('(')
     n, e = l.split(',')
     e = e[1:len(e)-1]
-    pubKey = rsa.PublicKey(int(n), int(e))
-    return pubKey
+    pub_key = rsa.PublicKey(int(n), int(e))
+    return pub_key
 
 

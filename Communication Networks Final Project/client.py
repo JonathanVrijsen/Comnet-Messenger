@@ -32,7 +32,7 @@ class Client:
 
     def __init__(self):
         self.own_ip = "127.0.0.1"
-        (self.pubKey, self.privKey) = generateKeys()
+        (self.pubKey, self.privKey) = generate_keys()
 
         (self.server_ip, self.server_socket, self.key_server_ip, self.key_server_socket) = self.get_server_information()
 

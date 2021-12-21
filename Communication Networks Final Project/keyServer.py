@@ -37,7 +37,7 @@ class keyServer:
         self.serverSocket.bind(('127.0.0.1', self.serverPort))  # '' contains addresses, when empty it means all
         self.stopSocket.bind(('127.0.0.1', self.stopPort))
 
-        (self.pubKey, self.privKey) = asymmetricKeying.generateKeys()
+        (self.pubKey, self.privKey) = asymmetricKeying.generate_keys()
 
         self.currentThreads = []
         self.connectedClients = []

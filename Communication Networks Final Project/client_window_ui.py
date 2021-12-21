@@ -11,13 +11,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(580, 599)
-        self.gridLayout = QtWidgets.QGridLayout(Form)
+class UiForm(object):
+    def setup_ui(self, form):
+        form.setObjectName("Form")
+        form.resize(580, 599)
+        self.gridLayout = QtWidgets.QGridLayout(form)
         self.gridLayout.setObjectName("gridLayout")
-        self.stackedWidget = QtWidgets.QStackedWidget(Form)
+        self.stackedWidget = QtWidgets.QStackedWidget(form)
         self.stackedWidget.setObjectName("stackedWidget")
         self.page = QtWidgets.QWidget()
         self.page.setObjectName("page")
@@ -179,6 +179,7 @@ class Ui_Form(object):
         self.H_RefreshConvsButton.setObjectName("H_RefreshConvsButton")
         self.verticalLayout_3.addWidget(self.H_RefreshConvsButton)
         self.H_ContactList = QtWidgets.QListWidget(self.CC_standard)
+        self.H_ContactList.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.H_ContactList.setObjectName("H_ContactList")
         self.H_ContactList.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.verticalLayout_3.addWidget(self.H_ContactList)
@@ -253,10 +254,10 @@ class Ui_Form(object):
         self.stackedWidget.addWidget(self.page_2)
         self.gridLayout.addWidget(self.stackedWidget, 1, 0, 1, 1)
 
-        self.retranslateUi(Form)
+        self.retranslateUi(form)
         self.stackedWidget.setCurrentIndex(1)
         self.stackedWidget_2.setCurrentIndex(1)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate

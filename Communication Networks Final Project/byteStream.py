@@ -37,7 +37,7 @@ def constructor_info(message_type, content):
     elif message_type == byteStreamType.ByteStreamType.registertomain:
         out_string = "registertomain - " + content # content = list of usernames
     elif message_type == byteStreamType.ByteStreamType.newconversation:
-        out_string = "newconversation - " +content #content is list of members
+        out_string = "newconversation - " + content #content is list of members
     elif message_type == byteStreamType.ByteStreamType.message:
         out_string = "message - " + content #content id (len(id) is 40) - message
     elif message_type == byteStreamType.ByteStreamType.requestconversationkey:
