@@ -34,6 +34,8 @@ class Server:
         self.connected_clients = []
         self.current_threads = []
 
+        self.stop_all_threads = False
+
         self.known_users = set()  # empty set (basically list with unique elements)
 
         self.server_port = 12100
@@ -95,6 +97,10 @@ class Server:
 
     def connected_client_listen(self, connected_client):
         while connected_client.active:
+
+            if self.stop_all_threads:
+                break
+
             connection_socket = connected_client.connection_socket
 
             rcvd = connection_socket.recv(1024)
@@ -270,6 +276,14 @@ class Server:
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
+
+        self.stop_all_threads = True
+
         self.stop_socket.connect((self.server_ip, self.server_port))
         self.stop_socket.send(b)
         self.stop_socket.close()
+
+        print("MS needs to close ", len(self.current_threads), "threads")
+        for thread in self.current_threads:
+            thread.join(2)
+        print("MS threads closed")

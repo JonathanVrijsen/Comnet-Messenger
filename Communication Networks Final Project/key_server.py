@@ -43,6 +43,7 @@ class KeyServer:
 
         self.current_threads = []
         self.connected_clients = []
+        self.stop_all_threads = False
 
         self.username_password_pairs = []  # already registered users
         #self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
@@ -112,6 +113,10 @@ class KeyServer:
 
     def connected_client_listen(self, connected_client):
         while connected_client.active:
+
+            if self.stop_all_threads:
+                break
+
             connection_socket = connected_client.connection_socket
             rcvd = connection_socket.recv(1024)
             print("RECEIVED")
@@ -224,9 +229,15 @@ class KeyServer:
 
     def stop_listening(self):
         b = bytes('1', 'utf-8')
+        self.stop_all_threads = True
         self.stop_socket.connect((self.server_ip, self.server_port))
         self.stop_socket.send(b)
         self.stop_socket.close()
+
+        print("KS needs to close ", len(self.current_threads), "threads")
+        for thread in self.current_threads:
+            thread.join(2)
+        print("KS threads closed")
 
     def get_password(self, login):
         return self.find_in_list(login)[0]

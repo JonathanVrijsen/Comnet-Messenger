@@ -56,6 +56,8 @@ class Client:
 
         self.conversations = []
 
+        self.stop_all_threads = False
+
     def login(self, username, password):
         password = hash_string(password)  # since only hashed version of password is transmitted
         # send username and password to keyserver
@@ -107,6 +109,10 @@ class Client:
 
     def listen_to_mainserver(self):
         while True:
+
+            if self.stop_all_threads:
+                break
+
             rcvd = self.clientToMainSocket.recv(1024)
             rcvd = symm_decrypt(rcvd, self.mainserver_symkey)
             byte_stream_in = ByteStream(rcvd)
@@ -424,4 +430,13 @@ class Client:
         # go back to begin screen
         user = None
         conversations = None
+
+
+    def stop_client(self):
+        self.stop_all_threads = True
+        print("CL needs to close ", len(self.currentThreads), "treads")
+        for thread in self.currentThreads:
+            thread.join(2)
+        print("CL closed all threads")
+
 

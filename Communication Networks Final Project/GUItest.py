@@ -75,6 +75,9 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_CC_AddConvButton.clicked.connect(self.finalise_conversations)
         self.H_RefreshConvsButton.clicked.connect(self.get_conversations)
 
+        self.current_threads = []
+        self.stop_all_threads = False
+
         self.username = None
         # self.password = None
         self.contactList = []
@@ -93,12 +96,15 @@ class ClientWindow(QWidget, Ui_Form):
             self.setWindowTitle(tile)
             self.update_thread = Thread(target=self.check_for_message)
             self.update_thread.start()
+            self.current_threads.append(self.update_thread)
 
         else:
             self.H_LogErrorTextBox.setText("Wrong username or password")
 
     def check_for_message(self):
         while True:
+            if self.stop_all_threads:
+                break
             self.check_for_message_once()
 
     def check_for_message_once(self):
@@ -193,6 +199,7 @@ class ClientWindow(QWidget, Ui_Form):
     def get_conversations(self):
         refresh_conversations_thread = threading.Thread(target=self.refresh_conversations)
         refresh_conversations_thread.start()
+        self.current_threads.append(refresh_conversations_thread)
 
 
     def refresh_conversations(self):
@@ -202,6 +209,17 @@ class ClientWindow(QWidget, Ui_Form):
 
         for name in conv_names:
             self.H_ContactList.addItem(QListWidgetItem(name))
+
+    def closeEvent(self, event):
+        self.stop_all_threads = True
+
+        self.client.stop_client()
+
+        for thread in self.current_threads:
+            thread.join()
+        print("CL window Threads closed")
+
+
 
 
 class ServerOverview(QWidget, UIServerWind):
@@ -231,10 +249,12 @@ class ServerOverview(QWidget, UIServerWind):
                 break
 
     def closeEvent(self, event):
+
         self.stop_thread = True
         self.MainServer.stop_listening()
+        print("MS window needs to close thread:")
         self.listen_thread.join()
-
+        print("MS window threads closed:")
 
 class KeyServerOverview(QWidget, UIServerWind):
     def __init__(self, parent=None):
@@ -300,7 +320,9 @@ class KeyServerOverview(QWidget, UIServerWind):
     def closeEvent(self, event):
         self.stop_thread = True
         self.KeyServer.stop_listening()
+        print("KS window needs to close thread")
         self.listen_thread.join()
+        print("KS window threads closed")
 
 
 if __name__ == "__main__":
