@@ -54,6 +54,8 @@ def constructor_info(message_type, content):
         out_string = "getconversation - " + content
     elif message_type == byte_stream_type.ByteStreamType.conversation:
         out_string = "conversation - " + content
+    elif message_type == byte_stream_type.ByteStreamType.logout:
+        out_string = "logout"
     else:
         raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
     out_stream = out_string.encode("utf-8")
@@ -164,6 +166,9 @@ def extract_from_byte_string(out_string):
         (start, end) = re.search(r"^conversation - ", out_string).span()
         message_type = byte_stream_type.ByteStreamType.conversation
         content = out_string[end:]
+    elif re.search(r"^logout$", out_string) is not None:
+        content = None
+        message_type = byte_stream_type.ByteStreamType.logout
 
     else:
         raise CustomError(byte_stream_error_types.ByteStreamErrorType.NoMessageTypeMatch)

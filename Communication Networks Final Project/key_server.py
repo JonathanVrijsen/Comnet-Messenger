@@ -87,7 +87,7 @@ class KeyServer:
 
 
         # launch new thread dedicated to connected_client
-        new_thread = threading.Thread(target=self.connected_user_listen, args=(new_connected_client,))
+        new_thread = threading.Thread(target=self.connected_client_listen, args=(new_connected_client,))
         self.current_threads.append(new_thread)
         new_thread.start()
 
@@ -106,7 +106,7 @@ class KeyServer:
             print(rcvd_content)
             self.handle_message(rcvd_content, connection_socket)
 
-    def connected_user_listen(self, connected_client):
+    def connected_client_listen(self, connected_client):
         while connected_client.active:
             connection_socket = connected_client.connection_socket
             rcvd = connection_socket.recv(1024)
@@ -200,11 +200,9 @@ class KeyServer:
                 out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                 connected_client.connection_socket.send(out)
 
+            elif type == ByteStreamType.logout:
+                connected_client.user = None
 
-        # step: decode message using private key and
-        # step: if register request, take account-password, check IP if sus?, check if accountname doesn't exist already
-        # if allright, create public and private key and send to receiver over temporary secure channel
-        # step: if login request, check combo and send to receiver over temporary secure channel
 
     def get_users(self):
         return self.database

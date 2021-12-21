@@ -45,6 +45,7 @@ class Client:
 
         self.currentThreads = []
         self.all_conversation_members = []
+        self.all_conversations_received = False
 
         self.first_message_to_keyserver()
         self.first_message_to_server()
@@ -189,6 +190,8 @@ class Client:
                     self.all_conversation_members.append(conversation_members)
                     self.conversations.append(conversation)
 
+                self.all_conversations_received = True
+
     def get_messages(self, contact):
         contact.append(self.user.username)
         asked_members = contact
@@ -249,8 +252,10 @@ class Client:
         out = symm_encrypt(byte_stream_out.outStream, self.mainserver_symkey)
         self.clientToMainSocket.send(out)
 
-        time.sleep(0.5)
+        while not self.all_conversations_received:
+            time.sleep(0.1)
 
+        self.all_conversations_received = False
         return self.all_conversation_members
 
     def get_one_conversation(self, id):
@@ -390,10 +395,15 @@ class Client:
             self.clientToMainSocket.send(out)
 
     def log_out(self):
+        #logout at keyserver and server
+        byteStreamOut = ByteStream(ByteStreamType.logout)
+        out1 = symm_encrypt(byteStreamOut.outStream, self.mainserver_symkey)
+        self.clientToMainSocket.send(out1)
+
+        out2 = symm_encrypt(byteStreamOut.outStream, self.keyserver_symkey)
+        self.clientToKeySocket.send(out2)
+
         # go back to begin screen
         user = None
         conversations = None
 
-        # in a way, the keys of the previous user are still saved at the client.
-        # so maybe, implement a signal to let the keyServer know that some client has logged out,
-        # and hence it should create new keys for the conversations of the client
