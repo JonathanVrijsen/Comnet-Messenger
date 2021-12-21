@@ -4,6 +4,14 @@ Available is a messaging application created in python.
 This project was completed in order to pass the course ELEC-H417: "Communication Networks Protocols and Architectures"
 taught at the ULB by professor Jean-Michel Dricot.
 
+The goal of this project is to design and implement
+a basic chat app enabling private communication.
+The application relies on a centralized architecture, 
+meaning a central server handles the communication between
+clients. An extra server, called key server, was implemented
+to ensure private communication. The complete architecture
+is described in detail in the [report.](https://github.com/link_to_report)
+
 ## Prerequisites
 
 In the source code a couple of external libraries were used.
