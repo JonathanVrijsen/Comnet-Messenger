@@ -1,3 +1,6 @@
+import errno
+import time
+
 from cryptography.fernet import Fernet
 
 import byte_stream_type
@@ -51,6 +54,36 @@ class Server:
         self.serverCommonKey = f_key.read()
 
         self.i = 0
+
+        broadcast_thread = threading.Thread(target=self.broadcast_addr)
+        broadcast_thread.start()
+        self.current_threads.append(broadcast_thread)
+
+    def broadcast_addr(self):
+        interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
+        allips = [ip[-1][0] for ip in interfaces]
+
+        msg = "MS_Addr" + ";;;" + self.server_ip + ";;;" + str(self.server_port)
+        msgb = msg.encode("ascii")
+
+        while True:
+            if self.stop_all_threads:
+                break
+
+            for ip in allips:
+                sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)  # UDP
+                sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+                try:
+                    sock.bind((ip, 0))
+                    sock.sendto(msgb, ("255.255.255.255", 5005))
+                    sock.close()
+                    time.sleep(0.43)
+                except error as e:
+                    if e.errno == errno.EADDRINUSE:
+                        print("MS can't listen on broadcast: already in use")
+                    sock.close()
+                    time.sleep(0.1)
+
 
     def listen(self):
         self.server_socket.listen(64)

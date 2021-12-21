@@ -1,5 +1,7 @@
+import errno
 import re
 import threading
+import time
 from math import floor
 from random import getrandbits
 from socket import *
@@ -53,6 +55,38 @@ class KeyServer:
 
         self.database = []
         self.conversation_keys = dict()
+
+        broadcast_thread = threading.Thread(target = self.broadcast_addr)
+        broadcast_thread.start()
+        self.current_threads.append(broadcast_thread)
+
+    def broadcast_addr(self):
+        interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
+        allips = [ip[-1][0] for ip in interfaces]
+
+        msg = "KS_Addr" + ";;;" + self.server_ip + ";;;" + str(self.server_port)
+        msgb = msg.encode("ascii")
+
+        time.sleep(0.2)
+
+        while True:
+            if self.stop_all_threads:
+                break
+
+            for ip in allips:
+                sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)  # UDP
+                sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+                try:
+                    sock.bind((ip, 0))
+                    sock.sendto(msgb, ("255.255.255.255", 5005))
+                    sock.close()
+                    time.sleep(0.37)
+                except error as e:
+                    if e.errno == errno.EADDRINUSE:
+                        print("KS can't listen on broadcast: already in use")
+                    sock.close()
+                    time.sleep(0.1)
+
 
     def listen(self):
         self.server_socket.listen(64)
