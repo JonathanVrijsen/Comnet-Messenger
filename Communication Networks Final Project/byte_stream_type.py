@@ -27,4 +27,5 @@ class ByteStreamType(enum.Enum):
     getconversation = 23
     conversation = 24
     logout = 25
+    stoplistening = 26
     # TODO add (pls stop)

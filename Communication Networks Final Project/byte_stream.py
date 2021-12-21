@@ -170,6 +170,10 @@ def extract_from_byte_string(out_string):
         content = None
         message_type = byte_stream_type.ByteStreamType.logout
 
+    elif out_string == '1': #exit signal
+        message_type = byte_stream_type.ByteStreamType.stoplistening
+        content = ""
+
     else:
         raise CustomError(byte_stream_error_types.ByteStreamErrorType.NoMessageTypeMatch)
     return content, message_type

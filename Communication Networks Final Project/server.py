@@ -37,12 +37,12 @@ class Server:
         self.known_users = set()  # empty set (basically list with unique elements)
 
         self.server_port = 12100
-        self.stop_port = 12101
+        self.stop_port = 12110
         self.server_ip = '127.0.0.1'
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.stop_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('127.0.0.1', self.server_port))
-        self.stop_socket.bind(('127.0.0.1', self.stop_port))
+        #self.stop_socket.bind(('127.0.0.1', self.stop_port))
 
         (self.pub_key, self.priv_key) = generate_keys()
         f_key = open("serverCommonKey.txt", 'rb')
@@ -57,35 +57,39 @@ class Server:
 
         # check if incoming client wants to make a new connection. If this is the case, it hands the server its public key first
         byte_stream_in = ByteStream(rcvd_content)
-        if byte_stream_in.messageType == ByteStreamType.keyrequest:
+
+        if byte_stream_in.messageType == ByteStreamType.stoplistening:
+            pass
+
+        elif byte_stream_in.messageType == ByteStreamType.keyrequest:
             client_pub_key = string_to_pubkey(byte_stream_in.content)
             print("KS receivers client pubkey:")
             print(client_pub_key)
 
-        print("KS sends own pubkey:")
-        print(self.pub_key)
-        # send own public key to client
-        byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pub_key)
-        connection_socket.send(byte_stream_out.outStream)  # send own public key
+            print("KS sends own pubkey:")
+            print(self.pub_key)
+            # send own public key to client
+            byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pub_key)
+            connection_socket.send(byte_stream_out.outStream)  # send own public key
 
-        # encrypt symmetric key and send to client
-        new_sym_key = Fernet.generate_key()
-        print("KS sends symkey:")
-        print(new_sym_key)
-        msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
-        msg = rsa_sendable(msg_bs.outStream, self.priv_key, client_pub_key)
-        print("KS sends symkey, encrypted")
-        print(msg)
-        connection_socket.send(msg)
+            # encrypt symmetric key and send to client
+            new_sym_key = Fernet.generate_key()
+            print("KS sends symkey:")
+            print(new_sym_key)
+            msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
+            msg = rsa_sendable(msg_bs.outStream, self.priv_key, client_pub_key)
+            print("KS sends symkey, encrypted")
+            print(msg)
+            connection_socket.send(msg)
 
-        # create new connected client
-        new_connected_client = ConnectedClient(connection_socket, new_sym_key, client_pub_key)
-        self.connected_clients.append(new_connected_client)
+            # create new connected client
+            new_connected_client = ConnectedClient(connection_socket, new_sym_key, client_pub_key)
+            self.connected_clients.append(new_connected_client)
 
-        # launch new thread dedicated to connected_client
-        new_thread = threading.Thread(target=self.connected_client_listen, args=(new_connected_client,))
-        self.current_threads.append(new_thread)
-        new_thread.start()
+            # launch new thread dedicated to connected_client
+            new_thread = threading.Thread(target=self.connected_client_listen, args=(new_connected_client,))
+            self.current_threads.append(new_thread)
+            new_thread.start()
 
         # note that it's possible that multiple clients are logged in to the same user
 
