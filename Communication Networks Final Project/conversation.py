@@ -4,13 +4,10 @@ from message import Message
 
 
 class Conversation:
-    def __init__(self, *args):
-        if len(args) == 1:
-            self.from_json(args[0])
-        else:
-            self.messages = []
-            self.members = args[0]
-            self.id = args[1]
+    def __init__(self, members, id):
+        self.messages = []
+        self.members = members
+        self.id = id
 
     def to_json(self):
         json_dict = dict()
@@ -29,19 +26,9 @@ class Conversation:
 
         return json_dict
 
-    def from_json(self, json_string):
-        json_dict = json.loads(json_string)
-        self.id = json_dict["id"]
-        members_json_list = json.dumps(json.dumps(json_dict["members"]))
-        messages_json_list = json.dumps(json.dumps(json_dict["messages"]))
-
 
     def add_message(self, message):
         self.messages.append(message)
-
-    def print_messages(self):
-        for message in self.messages:
-            print(message.content)
 
     def encode_conversation(self):
         # convention: id -- member1;;;member2;;;...;;;memberi -- sender;,;message1;;;sender;,;message2;;;...;;;sender;,;messagei
