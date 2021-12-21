@@ -1,5 +1,6 @@
 import json
 import errno
+import os
 import re
 import threading
 import time
@@ -89,24 +90,24 @@ class KeyServer:
                     time.sleep(0.1)
 
     def load_keys(self):
-        f = open("conversation_keys.txt", "r")
-        json_keys = f.read().splitlines()
-        f.close()
-        if len(json_keys) > 0:
-            for json_key in json_keys:
-                pair = json.loads(json_key)
-                id = pair["id"]
-                key = pair["key"]
-                self.conversation_keys[id] = key
-
-        print(self.conversation_keys)
+        if os.path.isfile("conversation_keys.txt"):
+            f = open("conversation_keys.txt", "r")
+            json_keys = f.read().splitlines()
+            f.close()
+            if len(json_keys) > 0:
+                for json_key in json_keys:
+                    pair = json.loads(json_key)
+                    id = pair["id"]
+                    key = pair["key"]
+                    self.conversation_keys[id] = key
 
     def load_registered_users(self):
-        f = open("registered_users.txt", "r")
-        json_string = json.loads(f.read())
-        for pair in json_string:
-            self.database.append((pair[0], pair[1]))
-        print(json_string)
+        if os.path.isfile("registered_users.txt"):
+            f = open("registered_users.txt", "r")
+            json_string = json.loads(f.read())
+            f.close()
+            for pair in json_string:
+                self.database.append((pair[0], pair[1]))
 
     def listen(self):
         self.server_socket.listen(64)

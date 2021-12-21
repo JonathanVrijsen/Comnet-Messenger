@@ -1,4 +1,5 @@
 import errno
+import os
 import time
 
 import json
@@ -42,6 +43,7 @@ class Server:
         self.stop_all_threads = False
 
         self.known_users = set()  # empty set (basically list with unique elements)
+        self.load_known_users()
 
         self.server_port = 12100
         self.stop_port = 12110
@@ -61,6 +63,15 @@ class Server:
         broadcast_thread = threading.Thread(target=self.broadcast_addr)
         broadcast_thread.start()
         self.current_threads.append(broadcast_thread)
+
+    def load_known_users(self):
+        if os.path.isfile("known_users_main_server.txt"):
+            f = open("known_users_main_server.txt", "r")
+            json_string = json.loads(f.read())
+            for username in json_string:
+                self.known_users.add(User(username))
+            f.close()
+            print(json_string)
 
     def broadcast_addr(self):
         interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
@@ -136,154 +147,154 @@ class Server:
 
             if self.stop_all_threads:
                 break
+            else:
+                connection_socket = connected_client.connection_socket
 
-            connection_socket = connected_client.connection_socket
+                rcvd = connection_socket.recv(1024)
+                rcvd = symm_decrypt(rcvd, connected_client.symKey)
+                byte_stream_in = ByteStream(rcvd)
+                rcvd_content = byte_stream_in.content
 
-            rcvd = connection_socket.recv(1024)
-            rcvd = symm_decrypt(rcvd, connected_client.symKey)
-            byte_stream_in = ByteStream(rcvd)
-            rcvd_content = byte_stream_in.content
+                if byte_stream_in.messageType == ByteStreamType.registertomain:
+                    (username, sign) = rcvd_content.split(" - ", 1)
+                    print("MAIN SERVER: REGISTER TO MAIN")
+                    print(username)
+                    print(sign)
+                    sign = sign[2:len(sign) - 1]
+                    print(sign)
 
-            if byte_stream_in.messageType == ByteStreamType.registertomain:
-                (username, sign) = rcvd_content.split(" - ", 1)
-                print("MAIN SERVER: REGISTER TO MAIN")
-                print(username)
-                print(sign)
-                sign = sign[2:len(sign) - 1]
-                print(sign)
+                    decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
 
-                decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
+                    if username.encode('ascii') == decrypted_username:
+                        print("USER RGISTERED AT MAIN SERVER:", username)
+                        new_user = User(username)
+                        self.known_users.add(new_user)  # doesn't add if already in set
 
-                if username.encode('ascii') == decrypted_username:
-                    print("USER RGISTERED AT MAIN SERVER:", username)
-                    new_user = User(username)
-                    self.known_users.add(new_user)  # doesn't add if already in set
-
-            elif byte_stream_in.messageType == ByteStreamType.requestallids:
-                username = connected_client.user.username
-                first = True
-                print(len(self.conversations))
-                for conv in self.conversations:
-                    members = conv.members
-                    if username in members:
-                        if first:
-                            id_array = str(conv.id)
-                            first = first and (not first)
-                        else:
-                            id_array = id_array + " - " + str(conv.id)
-                if first:
-                    id_array = ""
-
-                byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answerallids, id_array)
-                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connected_client.connection_socket.send(out)
-
-            elif byte_stream_in.messageType == ByteStreamType.loginrequest:
-                (username, sign) = rcvd_content.split(" - ", 1)
-                print("MAIN SERVER: LOGIN OF:", username)
-                sign = sign[2:len(sign) - 1]
-                decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
-                if username.encode('ascii') == decrypted_username:
-                    print("NOUS SOMMES ENTRES")
-                    new_user = User(username)
-                    connected_client.set_user(new_user)
-
-            elif byte_stream_in.messageType == ByteStreamType.contactrequest:
-                print("CONTACT REQUEST AT MAIN SERVER")
-                contacts = ""
-                first = True
-                for user in self.known_users:
-                    username = user.username
-                    print(connected_client.user.username)
-                    # if username != connected_client.user.username:
-                    # TODO filter in different way
-                    if first:
-                        contacts = contacts + username
-                        first = not first
-                    else:
-                        contacts = contacts + " - " + username
-                print("send: ", contacts)
-                byte_stream_out = ByteStream(ByteStreamType.contactanswer, contacts)
-                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connection_socket.send(out)
-
-            elif byte_stream_in.messageType == ByteStreamType.newconversation:
-                members = rcvd_content.split(" - ")
-                print("MS receives members: ", members)
-                id = hash_string(rcvd_content)
-                conversation = Conversation(members, id)
-                self.conversations.append(conversation)
-
-            elif byte_stream_in.messageType == ByteStreamType.message:
-                # extract conversation id and content from rcvd_content
-                # string has the following form: id-content, so split at first occurence of "-"
-                id = rcvd_content[:40]
-                msg = rcvd_content[43:]
-
-                print("MS receives msg: ", msg)
-
-                sender = connected_client.user
-                # TODO user is last registered, not last logged in
-                message = Message(sender.username, msg)
-
-                # check if message id is in existing conversations
-                for conversation in self.conversations:
-                    if id == conversation.id:
-                        # save message in conversation
-                        conversation.add_message(message)
-                        print("conversation changed: ")
-                        conversation.print_messages()
-                        # find all the receivers
-                        members = conversation.members
-                        print("conversation members: ", members)
-                        break
-
-                byte_stream_out = ByteStream(ByteStreamType.message, str(id) + " - " + sender.username + " - " + msg)
-                for receiver in members:
-                    # note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
-                    for tempConnectedClient in self.connected_clients:
-                        print(tempConnectedClient.user.username)
-
-                        if tempConnectedClient.user.username is not None and receiver == tempConnectedClient.user.username and tempConnectedClient != connected_client:
-                            out = symm_encrypt(byte_stream_out.outStream, tempConnectedClient.symKey)
-                            print('MS sends message')
-                            tempConnectedClient.connection_socket.send(out)
-
-            elif byte_stream_in.messageType == ByteStreamType.requestmembers:
-                id = rcvd_content
-                client_is_member = False
-                client_name = connected_client.user.username
-                for conv in self.conversations:
-                    if id == conv.id:
+                elif byte_stream_in.messageType == ByteStreamType.requestallids:
+                    username = connected_client.user.username
+                    first = True
+                    print(len(self.conversations))
+                    for conv in self.conversations:
                         members = conv.members
-                        first = True
-                        for m in members:
-                            if m == client_name:
-                                client_is_member = True
-
+                        if username in members:
                             if first:
-                                first = not first
-                                total_string = m
+                                id_array = str(conv.id)
+                                first = first and (not first)
                             else:
-                                total_string = total_string + " - " + m
-                    break
-                if client_is_member:
-                    byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answermembers, total_string)
+                                id_array = id_array + " - " + str(conv.id)
+                    if first:
+                        id_array = ""
+
+                    byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answerallids, id_array)
                     out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                     connected_client.connection_socket.send(out)
 
-            elif byte_stream_in.messageType == ByteStreamType.getconversation:
-                id = byte_stream_in.content
-                for conv in self.conversations:
-                    if id == conv.id:
-                        encoded_conversation = conv.encode_conversation()
-                        byte_stream_out = ByteStream(ByteStreamType.conversation, encoded_conversation)
-                        out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                        connection_socket.send(out)
-                        break
+                elif byte_stream_in.messageType == ByteStreamType.loginrequest:
+                    (username, sign) = rcvd_content.split(" - ", 1)
+                    print("MAIN SERVER: LOGIN OF:", username)
+                    sign = sign[2:len(sign) - 1]
+                    decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
+                    if username.encode('ascii') == decrypted_username:
+                        print("NOUS SOMMES ENTRES")
+                        new_user = User(username)
+                        connected_client.set_user(new_user)
 
-            elif byte_stream_in.messageType == ByteStreamType.logout:
-                connected_client.user = None
+                elif byte_stream_in.messageType == ByteStreamType.contactrequest:
+                    print("CONTACT REQUEST AT MAIN SERVER")
+                    contacts = ""
+                    first = True
+                    for user in self.known_users:
+                        username = user.username
+                        print(connected_client.user.username)
+                        # if username != connected_client.user.username:
+                        # TODO filter in different way
+                        if first:
+                            contacts = contacts + username
+                            first = not first
+                        else:
+                            contacts = contacts + " - " + username
+                    print("send: ", contacts)
+                    byte_stream_out = ByteStream(ByteStreamType.contactanswer, contacts)
+                    out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                    connection_socket.send(out)
+
+                elif byte_stream_in.messageType == ByteStreamType.newconversation:
+                    members = rcvd_content.split(" - ")
+                    print("MS receives members: ", members)
+                    id = hash_string(rcvd_content)
+                    conversation = Conversation(members, id)
+                    self.conversations.append(conversation)
+
+                elif byte_stream_in.messageType == ByteStreamType.message:
+                    # extract conversation id and content from rcvd_content
+                    # string has the following form: id-content, so split at first occurence of "-"
+                    id = rcvd_content[:40]
+                    msg = rcvd_content[43:]
+
+                    print("MS receives msg: ", msg)
+
+                    sender = connected_client.user
+                    # TODO user is last registered, not last logged in
+                    message = Message(sender.username, msg)
+
+                    # check if message id is in existing conversations
+                    for conversation in self.conversations:
+                        if id == conversation.id:
+                            # save message in conversation
+                            conversation.add_message(message)
+                            print("conversation changed: ")
+                            conversation.print_messages()
+                            # find all the receivers
+                            members = conversation.members
+                            print("conversation members: ", members)
+                            break
+
+                    byte_stream_out = ByteStream(ByteStreamType.message, str(id) + " - " + sender.username + " - " + msg)
+                    for receiver in members:
+                        # note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
+                        for tempConnectedClient in self.connected_clients:
+                            print(tempConnectedClient.user.username)
+
+                            if tempConnectedClient.user.username is not None and receiver == tempConnectedClient.user.username and tempConnectedClient != connected_client:
+                                out = symm_encrypt(byte_stream_out.outStream, tempConnectedClient.symKey)
+                                print('MS sends message')
+                                tempConnectedClient.connection_socket.send(out)
+
+                elif byte_stream_in.messageType == ByteStreamType.requestmembers:
+                    id = rcvd_content
+                    client_is_member = False
+                    client_name = connected_client.user.username
+                    for conv in self.conversations:
+                        if id == conv.id:
+                            members = conv.members
+                            first = True
+                            for m in members:
+                                if m == client_name:
+                                    client_is_member = True
+
+                                if first:
+                                    first = not first
+                                    total_string = m
+                                else:
+                                    total_string = total_string + " - " + m
+                        break
+                    if client_is_member:
+                        byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answermembers, total_string)
+                        out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                        connected_client.connection_socket.send(out)
+
+                elif byte_stream_in.messageType == ByteStreamType.getconversation:
+                    id = byte_stream_in.content
+                    for conv in self.conversations:
+                        if id == conv.id:
+                            encoded_conversation = conv.encode_conversation()
+                            byte_stream_out = ByteStream(ByteStreamType.conversation, encoded_conversation)
+                            out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                            connection_socket.send(out)
+                            break
+
+                elif byte_stream_in.messageType == ByteStreamType.logout:
+                    connected_client.user = None
 
     def get_conv_data(self):
         ans = []
@@ -316,9 +327,23 @@ class Server:
         json.dump(conv_json, file)
         file.close()
 
+    def store_known_users(self):
+        #since JSON cannot serialize sets, I believe
+        known_users_list = []
+        if len(self.known_users) > 0:
+            for known_user in self.known_users:
+                known_users_list.append(known_user.username)
+
+            json_string = json.dumps(known_users_list)
+            f = open("known_users_main_server.txt", "w")
+            f.truncate(0)
+            f.write(json_string)
+            f.close()
+
+
     def stop_listening(self):
         #self.store_conversations()
-
+        self.store_known_users()
         b = bytes('1', 'utf-8')
 
         self.stop_all_threads = True

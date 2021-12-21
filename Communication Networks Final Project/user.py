@@ -1,5 +1,4 @@
 class User:
-    profile_picture = None
 
     def __init__(self, username, password= None):
         self.username = username
