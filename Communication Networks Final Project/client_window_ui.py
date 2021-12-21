@@ -180,6 +180,7 @@ class Ui_Form(object):
         self.verticalLayout_3.addWidget(self.H_RefreshConvsButton)
         self.H_ContactList = QtWidgets.QListWidget(self.CC_standard)
         self.H_ContactList.setObjectName("H_ContactList")
+        self.H_ContactList.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.verticalLayout_3.addWidget(self.H_ContactList)
         self.gridLayout_4.addLayout(self.verticalLayout_3, 0, 0, 1, 1)
         self.stackedWidget_2.addWidget(self.CC_standard)

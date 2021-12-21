@@ -169,7 +169,7 @@ class Client:
                                 sender = m
                         print("CL got message from: "+sender)
                         if sendernameismmember:
-                            message = Message(User(sender), msg)
+                            message = Message(sender, msg)
                             conv.add_message(message)
                         break
 
@@ -209,7 +209,7 @@ class Client:
                 ans = []
                 for mes in conv.messages:
 
-                    ans.append(mes.sender.username + ": " + mes.content)
+                    ans.append(mes.sender + ": " + mes.content)
                 return ans
         print("fuck")
 
@@ -352,6 +352,10 @@ class Client:
         id = hashString(total_string)
 
         print("CL sends msg: ", msg)
+        for conversation in self.conversations:
+            if id == conversation.id:
+                # save message in conversation
+                conversation.add_message(Message(self.user.username,msg))
         byteStreamOut = ByteStream(ByteStreamType.message, (id) + " - " + msg)
         out = symmetricKeying.symmEncrypt(byteStreamOut.outStream, self.Mainserver_symkey)
         self.clientToMainSocket.send(out)

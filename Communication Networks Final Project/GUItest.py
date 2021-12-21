@@ -99,18 +99,22 @@ class ClientWindow(QWidget, Ui_Form):
 
     def check_for_message(self):
         while True:
-            time.sleep(2)
-            targets = self.H_ContactList.selectedItems()
-            possible_senders = []
-            for target in targets:
-                possible_senders.append(target.text())
 
-            if len(possible_senders) > 0:
-                messages = self.client.get_messages(possible_senders)
-                print("messages received at gui")
-                self.H_ConvList.clear()
-                for message in messages:
-                    self.H_ConvList.addItem(QListWidgetItem(message))
+            self.check_for_message_once()
+
+    def check_for_message_once(self):
+        time.sleep(2)
+        targets = self.H_ContactList.selectedItems()
+        possible_senders = []
+        for target in targets:
+            possible_senders.append(target.text())
+
+        if len(possible_senders) > 0:
+            messages = self.client.get_messages(possible_senders)
+            print("messages received at gui")
+            self.H_ConvList.clear()
+            for message in messages:
+                self.H_ConvList.addItem(QListWidgetItem(message))
 
     def logout(self):
         self.stackedWidget.setCurrentWidget(self.page)
@@ -152,6 +156,7 @@ class ClientWindow(QWidget, Ui_Form):
             print(receivers)
             self.H_MsgErrorLabel.clear()
             #TODO implement with client
+            self.check_for_message_once()
 
         else:
             self.H_MsgErrorLabel.setText("No target was selected")
