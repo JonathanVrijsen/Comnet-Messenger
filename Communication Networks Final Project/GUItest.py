@@ -47,10 +47,8 @@ class MainMenu(QMainWindow, UIMainWindow):
         self.keyserver_overview.show()
 
     def closeEvent(self, event):
-        for wind in self.client_windows:
-            wind.close()
-        self.server_overview.close()
-        self.keyserver_overview.close()
+        app = QApplication.instance()
+        app.closeAllWindows()
         event.accept()
 
 
