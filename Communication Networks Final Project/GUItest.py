@@ -142,6 +142,8 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_passwordBox.clear()
         self.setWindowTitle("NewClient")
         self.H_ContactList.clear()
+        self.H_ConvList.clear()
+        self.client.log_out()
 
     def register(self):
         self.username = self.H_RegUsernameBox.text()

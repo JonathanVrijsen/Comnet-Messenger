@@ -420,13 +420,9 @@ class Client:
 
     def log_out(self):
         #logout at keyserver and server
-        byteStreamOut = ByteStream(ByteStreamType.logout)
+        byteStreamOut = ByteStream(ByteStreamType.logout, "logout")
         out1 = symm_encrypt(byteStreamOut.outStream, self.mainserver_symkey)
         self.clientToMainSocket.send(out1)
-
-        out2 = symm_encrypt(byteStreamOut.outStream, self.keyserver_symkey)
-        self.clientToKeySocket.send(out2)
-
         # go back to begin screen
         user = None
         conversations = None
