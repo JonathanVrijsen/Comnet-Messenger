@@ -36,27 +36,45 @@ pip3 install cryptography
 
 ## Running the code
 
-To run the code and launch the application, the file GuiTest.py should be run.
+To run the code and launch the application, the file main.py should be run.
 The program has been tested and therefore is compatible 
 for Windows and macOS. Other operating systems shouldn't be a problem
-as long as python and the used libraries are compatible for that operating system.
+as long as python and the previously mentioned libraries are compatible for that operating system.
 
 ## Features
 
-Upon compilation, three windows are opened. the window allowing you to create clients, 
-the central messaging server and the key server are launched.
+### General
+
+Upon compilation, Main menu, Server Overview and Keyserver Overview are initialized and displayed.
+From the main window it is possible to create new client windows.
 
 <img alt="Main menu" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_MainMenu.png" title="Main menu"/>
+
+The Server Overview and Keyserver Overview windows can be used to analyse the server's behaviour and information. To update the information the button "Refresh" should be clicked.
+
 <img alt="Server overview" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_ServerOverView.png" title="Server overview"/>
+
+Clicking on the button "Create new client" on the Main menu, generates a new client and displays a new client window.
+From this window, one can register new users and log into their account.
+
 <img alt="Login screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_LoginScreen.png" title="Login screen"/>
+
+Once logged in using the correct username and password, the user's conversations are shown.
+When a specific conversation is selected in the list on the left-hand side, 
+all the messages are shown in the window.
 <img alt="Message screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_MessageScreen.png" title="Message screen"/>
 
+### Creating new conversation
+
+### Sending messages
+
+### Logout
 
 
 ## Contributors
 
-| [Jonathan Vrijsen](https://github.com/JonathanVrijsen) | [Wannes Nevens](https://github.com/WannesN) | [Sam Van de Velde](https://github.com/SamVandeVelde) | [Louis Van Eeckhoudt](https://github.com/Louis-Van-Eeckhoudt) |
-|----------------------|-------------------|----------------------|-------------------------|
+| [Jonathan Vrijsen](https://github.com/JonathanVrijsen)   | [Wannes Nevens](https://github.com/WannesN) | [Sam Van de Velde](https://github.com/SamVandeVelde) | [Louis Van Eeckhoudt](https://github.com/Louis-Van-Eeckhoudt) |
+|----------------------------------------------------------|---------------------------------------------|------------------------------------------------------|---------------------------------------------------------------|
 
 
 
