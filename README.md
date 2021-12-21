@@ -65,11 +65,24 @@ all the messages are shown in the window.
 
 <img alt="Message screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_MessageScreen.png" title="Message screen"/>
 
-### Creating new conversation
+### Register and login
 
-### Sending messages
+<img alt="Register And Login" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/RegisterAndLogin.gif" title="Register And Login"/>
+
+### Creating new conversation / Sending messages
+
+<img alt="CreateNewConv" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/CreateNewConv.gif" title="CreateNewConv"/>
+
+
+### Creating group conversation
+
+<img alt="CreateGroupConv" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/CreateGroupConv.gif" title="CreateGroupConv"/>
+
 
 ### Logout
+
+<img alt="Logout" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/RegisterAndLogin.gif" title="Logout"/>
+
 
 
 
