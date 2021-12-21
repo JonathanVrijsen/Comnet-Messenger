@@ -157,10 +157,10 @@ class ClientWindow(QWidget, Ui_Form):
 
         # targets is empty because self.H_ContactList.selectedItems() isn't on the GUI anymore
 
-        target = targets[0]
-        receivers = target.text()
-        receivers = receivers.split(", ")
-        if len(receivers) > 0:
+        if len(targets) > 0:
+            target = targets[0]
+            receivers = target.text()
+            receivers = receivers.split(", ")
             print(receivers)
             self.H_MsgErrorLabel.clear()
             # TODO implement with client
