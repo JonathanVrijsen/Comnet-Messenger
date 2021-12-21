@@ -83,13 +83,13 @@ class Server:
         self.connected_clients.append(new_connected_client)
 
         # launch new thread dedicated to connected_client
-        new_thread = threading.Thread(target=self.connected_user_listen, args=(new_connected_client,))
+        new_thread = threading.Thread(target=self.connected_client_listen, args=(new_connected_client,))
         self.current_threads.append(new_thread)
         new_thread.start()
 
         # note that it's possible that multiple clients are logged in to the same user
 
-    def connected_user_listen(self, connected_client):
+    def connected_client_listen(self, connected_client):
         while connected_client.active:
             connection_socket = connected_client.connection_socket
 
@@ -205,20 +205,26 @@ class Server:
 
             elif byte_stream_in.messageType == ByteStreamType.requestmembers:
                 id = rcvd_content
+                client_is_member = False
+                client_name = connected_client.user.username
                 for conv in self.conversations:
                     if id == conv.id:
                         members = conv.members
                         first = True
                         for m in members:
+                            if m == client_name:
+                                client_is_member = True
+
                             if first:
                                 first = not first
                                 total_string = m
                             else:
                                 total_string = total_string + " - " + m
-
-                byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answermembers, total_string)
-                out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                connected_client.connection_socket.send(out)
+                    break
+                if client_is_member:
+                    byte_stream_out = ByteStream(byte_stream_type.ByteStreamType.answermembers, total_string)
+                    out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                    connected_client.connection_socket.send(out)
 
             elif byte_stream_in.messageType == ByteStreamType.getconversation:
                 id = byte_stream_in.content
@@ -229,6 +235,9 @@ class Server:
                         out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                         connection_socket.send(out)
                         break
+
+            elif byte_stream_in.messageType == ByteStreamType.logout:
+                connected_client.user = None
 
     def listen_silently(self):
 
