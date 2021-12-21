@@ -24,7 +24,6 @@ class KeyServer:
     pub_key = None
     priv_key = None
     current_threads = None
-    conversationKeys = None  # tuple of (id, symmetric key)
 
     def __init__(self):
 
@@ -55,6 +54,8 @@ class KeyServer:
 
         self.database = []
         self.conversation_keys = dict()
+        self.load_keys()
+        self.load_registered_users()
 
         broadcast_thread = threading.Thread(target = self.broadcast_addr)
         broadcast_thread.start()
@@ -87,6 +88,25 @@ class KeyServer:
                     sock.close()
                     time.sleep(0.1)
 
+    def load_keys(self):
+        f = open("conversation_keys.txt", "r")
+        json_keys = f.read().splitlines()
+        f.close()
+        if len(json_keys) > 0:
+            for json_key in json_keys:
+                pair = json.loads(json_key)
+                id = pair["id"]
+                key = pair["key"]
+                self.conversation_keys[id] = key
+
+        print(self.conversation_keys)
+
+    def load_registered_users(self):
+        f = open("registered_users.txt", "r")
+        json_string = json.loads(f.read())
+        for pair in json_string:
+            self.database.append((pair[0], pair[1]))
+        print(json_string)
 
     def listen(self):
         self.server_socket.listen(64)
@@ -246,7 +266,6 @@ class KeyServer:
             elif type == ByteStreamType.logout:
                 connected_client.user = None
 
-
     def get_users(self):
         return self.database
 
@@ -260,23 +279,37 @@ class KeyServer:
         rcvd_content = connection_socket.recv(1024)
 
         return rcvd_content.decode("utf-8"), addr
+
     def store_keys(self):
+
         ids = self.conversation_keys.keys()
-        file = open("conversation_keys.txt", "w")
-        file.truncate(0)
-        for id in ids:
-            #make json string
-            json_dict = dict()
-            json_dict["id"] = id
-            json_dict["key"] = self.conversation_keys[id].decode('ascii')
+        if len(ids) > 0:
+            file = open("conversation_keys.txt", "w")
+            file.truncate(0)
+            for id in ids:
+                #make json string
+                json_dict = dict()
+                json_dict["id"] = id
+                json_dict["key"] = self.conversation_keys[id].decode('ascii')
 
-            json_string = json.dumps(json_dict)
-            file.write(json_string + "\n")
+                json_string = json.dumps(json_dict)
+                file.write(json_string + "\n")
 
-        file.close()
+            file.close()
+
+    def store_users(self):
+        if len(self.database) > 0:
+            json_string = json.dumps(self.database)
+            f = open("registered_users.txt", "w")
+            f.truncate(0)
+            f.write(json_string)
+            f.close()
+
+            print(json_string)
 
     def stop_listening(self):
         self.store_keys()
+        self.store_users()
         b = bytes('1', 'utf-8')
         self.stop_all_threads = True
         self.stop_socket.connect((self.server_ip, self.server_port))
