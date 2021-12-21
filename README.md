@@ -43,7 +43,11 @@ as long as python and the used libraries are compatible for that operating syste
 
 ## Features
 
+Upon compilation, three windows are opened. the window allowing you to create clients, 
+the central messaging server and the key server are launched.
 
+
+<img alt="Main Menu" src="/Users/louisvaneeckhoudt/Desktop/Available - MainMenu.png" title="Main Menu" width="500"/>
 
 ## Contributors
 
