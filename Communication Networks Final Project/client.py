@@ -153,7 +153,7 @@ class Client:
                 print("received: ", self.contacts)
                 # TODO add message to conversation
 
-            if byte_stream_in.messageType == byte_stream_type.ByteStreamType.answerallids:
+            elif byte_stream_in.messageType == byte_stream_type.ByteStreamType.answerallids:
                 id_array = byte_stream_in.content
                 ids = id_array.split(" - ")
                 print("CLIENT RECEIVED IDS:", ids)

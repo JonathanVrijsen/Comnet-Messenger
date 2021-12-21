@@ -44,3 +44,4 @@ class Conversation:
             for message_str in messages:
                 message = message_str.split(";,;")
                 self.messages.append(Message(message[0], message[1]))
+
