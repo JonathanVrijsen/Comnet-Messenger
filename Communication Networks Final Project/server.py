@@ -41,9 +41,9 @@ class Server:
         self.server_port = 12100
         self.stop_port = 12110
         self.server_ip = '127.0.0.1'
-        self.server_socket = socket(AF_INET, SOCK_STREAM)
+        self.serTver_socket = socket(AF_INET, SOCK_STREAM)
         self.stop_socket = socket(AF_INET, SOCK_STREAM)
-        self.server_socket.bind(('127.0.0.1', self.server_port))
+        self.server_socket.bind('127.0.0.1', self.server_port)
         #self.stop_socket.bind(('127.0.0.1', self.stop_port))
 
         (self.pub_key, self.priv_key) = generate_keys()
@@ -119,7 +119,7 @@ class Server:
                 decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
 
                 if username.encode('ascii') == decrypted_username:
-                    print("USER RGISTERED AT MAIN SERVER:", username)
+                    print("USER REGISTERED AT MAIN SERVER:", username)
                     new_user = User(username)
                     self.known_users.add(new_user)  # doesn't add if already in set
 
@@ -240,11 +240,16 @@ class Server:
                 id = byte_stream_in.content
                 for conv in self.conversations:
                     if id == conv.id:
+                        members = conv.members
+                        for m in members:
+                            if m == client_name:
+                                client_is_member = True
                         encoded_conversation = conv.encode_conversation()
-                        byte_stream_out = ByteStream(ByteStreamType.conversation, encoded_conversation)
-                        out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
-                        connection_socket.send(out)
-                        break
+                    break
+                if client_is_member:
+                    byte_stream_out = ByteStream(ByteStreamType.conversation, encoded_conversation)
+                    out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
+                    connection_socket.send(out)
 
             elif byte_stream_in.messageType == ByteStreamType.logout:
                 connected_client.user = None
