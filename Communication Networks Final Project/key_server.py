@@ -158,8 +158,8 @@ class KeyServer:
             self.handle_message(rcvd_content, connection_socket)
 
     def connected_client_listen(self, connected_client):
+        connected_client_logged_in = False
         while connected_client.active:
-            connected_client_logged_in = False
             if self.stop_all_threads:
                 break
 
