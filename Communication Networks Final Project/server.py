@@ -46,7 +46,7 @@ class Server:
         self.load_known_users()
         self.load_conversation()
 
-        self.server_port = 12100
+        self.server_port = 15600
         self.stop_port = 12110
         self.server_ip = '127.0.0.1'
         self.server_socket = socket(AF_INET, SOCK_STREAM)
@@ -244,7 +244,6 @@ class Server:
                         if id == conversation.id:
                             # save message in conversation
                             conversation.add_message(message)
-                            conversation.print_messages()
                             # find all the receivers
                             members = conversation.members
                             break
