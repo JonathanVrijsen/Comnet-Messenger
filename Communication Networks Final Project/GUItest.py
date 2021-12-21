@@ -47,8 +47,11 @@ class MainMenu(QMainWindow, UIMainWindow):
         self.keyserver_overview.show()
 
     def closeEvent(self, event):
-        app = QApplication.instance()
-        app.closeAllWindows()
+        for wind in self.client_windows:
+            wind.close()
+        self.server_overview.close()
+        self.keyserver_overview.close()
+        event.accept()
 
 
 class ClientWindow(QWidget, Ui_Form):
@@ -218,6 +221,8 @@ class ClientWindow(QWidget, Ui_Form):
         for thread in self.current_threads:
             thread.join()
         print("CL window Threads closed")
+        del self.client
+        event.accept()
 
 
 
@@ -255,6 +260,7 @@ class ServerOverview(QWidget, UIServerWind):
         print("MS window needs to close thread:")
         self.listen_thread.join()
         print("MS window threads closed:")
+        event.accept()
 
 class KeyServerOverview(QWidget, UIServerWind):
     def __init__(self, parent=None):
@@ -323,6 +329,7 @@ class KeyServerOverview(QWidget, UIServerWind):
         print("KS window needs to close thread")
         self.listen_thread.join()
         print("KS window threads closed")
+        event.accept()
 
 
 if __name__ == "__main__":
