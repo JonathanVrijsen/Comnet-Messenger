@@ -150,6 +150,7 @@ class Client:
                         break
             elif byte_stream_in.messageType == ByteStreamType.contactanswer:
                 self.contacts = byte_stream_in.content.split(" - ")
+                self.contacts.remove(self.user.username)
                 print("received: ", self.contacts)
                 # TODO add message to conversation
 
@@ -383,6 +384,7 @@ class Client:
         self.clientToMainSocket.send(out)
 
     def get_contacts(self):
+
         return self.contacts
 
     def start_conversation(self, contact_usernames):

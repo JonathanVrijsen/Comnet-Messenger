@@ -1,3 +1,4 @@
+import json
 import re
 import threading
 from math import floor
@@ -15,7 +16,6 @@ from symmetric_keying import *
 
 
 class KeyServer:
-    userArray = None
     server_port = None
     server_socket = None
     stop_socket = None
@@ -25,7 +25,6 @@ class KeyServer:
     conversationKeys = None  # tuple of (id, symmetric key)
 
     def __init__(self):
-        self.userArray = []
 
         self.server_port = 12002
         self.stop_port = 12013
@@ -50,6 +49,7 @@ class KeyServer:
 
         f_key = open("serverCommonKey.txt",'rb')
         self.server_common_key = f_key.read()
+        f_key.close()
 
         self.database = []
         self.conversation_keys = dict()
@@ -226,8 +226,23 @@ class KeyServer:
         rcvd_content = connection_socket.recv(1024)
 
         return rcvd_content.decode("utf-8"), addr
+    def store_keys(self):
+        ids = self.conversation_keys.keys()
+        file = open("conversation_keys.txt", "w")
+        file.truncate(0)
+        for id in ids:
+            #make json string
+            json_dict = dict()
+            json_dict["id"] = id
+            json_dict["key"] = self.conversation_keys[id].decode('ascii')
+
+            json_string = json.dumps(json_dict)
+            file.write(json_string + "\n")
+
+        file.close()
 
     def stop_listening(self):
+        self.store_keys()
         b = bytes('1', 'utf-8')
         self.stop_all_threads = True
         self.stop_socket.connect((self.server_ip, self.server_port))
