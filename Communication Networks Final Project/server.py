@@ -1,6 +1,8 @@
 import errno
 import time
 
+import json
+
 from cryptography.fernet import Fernet
 
 import byte_stream_type
@@ -52,6 +54,7 @@ class Server:
         (self.pub_key, self.priv_key) = generate_keys()
         f_key = open("serverCommonKey.txt", 'rb')
         self.serverCommonKey = f_key.read()
+        f_key.close()
 
         self.i = 0
 
@@ -304,13 +307,18 @@ class Server:
     def get_connected_clients(self):
         return self.connected_clients
 
-    def close(self):
-        # perhaps send close message to all connected_clients
+    def store_conversations(self):
+        conv_json = []
+        for conv in self.conversations:
+            conv_json.append(conv.to_json())
 
-        for thread in self.current_threads:
-            thread.join()
+        file = open("conversations.txt", "w")
+        json.dump(conv_json, file)
+        file.close()
 
     def stop_listening(self):
+        #self.store_conversations()
+
         b = bytes('1', 'utf-8')
 
         self.stop_all_threads = True
@@ -323,3 +331,4 @@ class Server:
         for thread in self.current_threads:
             thread.join(2)
         print("MS threads closed")
+

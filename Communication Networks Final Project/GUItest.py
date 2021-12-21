@@ -122,10 +122,11 @@ class ClientWindow(QWidget, Ui_Form):
         while True:
             if self.stop_all_threads:
                 break
+            time.sleep(2)
             self.check_for_message_once()
 
     def check_for_message_once(self):
-        time.sleep(2)
+
         targets = self.H_ContactList.selectedItems()
         if len(targets)>0:
             target = targets[0]
@@ -142,6 +143,8 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_passwordBox.clear()
         self.setWindowTitle("NewClient")
         self.H_ContactList.clear()
+        self.H_ConvList.clear()
+        self.client.log_out()
 
     def register(self):
         self.username = self.H_RegUsernameBox.text()
@@ -162,8 +165,7 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_RegErrorTextBox.setText("Succes!")
 
     def contact_clicked(self):
-        pass
-        # TODO import conv and display on right side
+        self.check_for_message_once()
 
     def send_msg(self):
         msg = self.H_MessageBox.text()
@@ -206,6 +208,8 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_CC_ErrorLabel.clear()
             self.stackedWidget_2.setCurrentWidget(self.CC_standard)
 
+            self.get_conversations()
+
         else:
             self.H_CC_ErrorLabel.setText("No participants were selected")
         # TODO create new conv in client with this list
@@ -220,10 +224,11 @@ class ClientWindow(QWidget, Ui_Form):
 
 
     def refresh_conversations(self):
-        self.H_ContactList.clear()
+        # self.H_ContactList.clear()
+
         conv_names = self.client.get_conversations()
         print(conv_names)
-
+        self.H_ContactList.clear()
         for name in conv_names:
             self.H_ContactList.addItem(QListWidgetItem(name))
 

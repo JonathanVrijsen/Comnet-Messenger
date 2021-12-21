@@ -200,6 +200,7 @@ class Client:
                         break
             elif byte_stream_in.messageType == ByteStreamType.contactanswer:
                 self.contacts = byte_stream_in.content.split(" - ")
+                self.contacts.remove(self.user.username)
                 print("received: ", self.contacts)
                 # TODO add message to conversation
 
@@ -433,6 +434,7 @@ class Client:
         self.clientToMainSocket.send(out)
 
     def get_contacts(self):
+
         return self.contacts
 
     def start_conversation(self, contact_usernames):
@@ -470,13 +472,9 @@ class Client:
 
     def log_out(self):
         #logout at keyserver and server
-        byteStreamOut = ByteStream(ByteStreamType.logout)
+        byteStreamOut = ByteStream(ByteStreamType.logout, "logout")
         out1 = symm_encrypt(byteStreamOut.outStream, self.mainserver_symkey)
         self.clientToMainSocket.send(out1)
-
-        out2 = symm_encrypt(byteStreamOut.outStream, self.keyserver_symkey)
-        self.clientToKeySocket.send(out2)
-
         # go back to begin screen
         user = None
         conversations = None
