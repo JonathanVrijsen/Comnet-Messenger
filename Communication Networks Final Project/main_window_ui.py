@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/Mainwindow.ui'
+# Form implementation generated from reading ui file 'Mainwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -11,48 +11,54 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class UIMainWindow(object):
-    def setup_ui(self, main_window):
-        main_window.setObjectName("MainWindow")
-        main_window.resize(400, 300)
-        self.centralwidget = QtWidgets.QWidget(main_window)
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(479, 175)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout.addWidget(self.label_2)
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setObjectName("label_3")
+        self.verticalLayout.addWidget(self.label_3)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.M_ClientCreateButton = QtWidgets.QPushButton(self.centralwidget)
         self.M_ClientCreateButton.setObjectName("M_ClientCreateButton")
         self.horizontalLayout.addWidget(self.M_ClientCreateButton)
-        self.M_ServerOverviewButton = QtWidgets.QPushButton(self.centralwidget)
-        self.M_ServerOverviewButton.setObjectName("M_ServerOverviewButton")
-        self.horizontalLayout.addWidget(self.M_ServerOverviewButton)
-        self.M_CreateKeyServerButton = QtWidgets.QPushButton(self.centralwidget)
-        self.M_CreateKeyServerButton.setObjectName("M_CreateKeyServerButton")
-        self.horizontalLayout.addWidget(self.M_CreateKeyServerButton)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
-        main_window.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(main_window)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 400, 21))
+        self.gridLayout.addLayout(self.verticalLayout, 1, 0, 1, 1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem, 2, 0, 1, 1)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 479, 21))
         self.menubar.setObjectName("menubar")
-        main_window.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(main_window)
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
-        main_window.setStatusBar(self.statusbar)
-        self.toolBar = QtWidgets.QToolBar(main_window)
+        MainWindow.setStatusBar(self.statusbar)
+        self.toolBar = QtWidgets.QToolBar(MainWindow)
         self.toolBar.setObjectName("toolBar")
-        main_window.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
 
-        self.retranslate_ui(main_window)
-        QtCore.QMetaObject.connectSlotsByName(main_window)
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslate_ui(self, main_window):
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        main_window.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "Aivelaibel, A messenging app by:"))
+        self.label_2.setText(_translate("MainWindow", "Jonathan Vrijsen, Louis Van Eeckhoudt, Sam Van De Velde and Wannes Nevens"))
+        self.label_3.setText(_translate("MainWindow", "Please click the button underneath to create a new client"))
         self.M_ClientCreateButton.setText(_translate("MainWindow", "Create new client"))
-        self.M_ServerOverviewButton.setText(_translate("MainWindow", "Server Overview"))
-        self.M_CreateKeyServerButton.setText(_translate("MainWindow", "CreateKeyserver"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))

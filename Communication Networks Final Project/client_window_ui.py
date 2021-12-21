@@ -255,7 +255,7 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         self.stackedWidget.setCurrentIndex(1)
-        self.stackedWidget_2.setCurrentIndex(1)
+        self.stackedWidget_2.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -273,7 +273,7 @@ class Ui_Form(object):
         self.H_RegButton.setText(_translate("Form", "Register"))
         self.H_LogoutButton.setText(_translate("Form", "Logout"))
         self.H_CreateNewConvButton.setText(_translate("Form", "Create new conversation"))
-        self.H_RefreshConvsButton.setText(_translate("Form", "Refresh convesations"))
+        self.H_RefreshConvsButton.setText(_translate("Form", "Refresh conversations"))
         self.H_CC_BackButton.setText(_translate("Form", "Back"))
         self.H_CC_AddConvButton.setText(_translate("Form", "Create new conversation"))
         self.H_sendButton.setText(_translate("Form", "Send"))

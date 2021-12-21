@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 
-from main_window_ui import UIMainWindow
+from main_window_ui import Ui_MainWindow
 from client_window_ui import Ui_Form
 from server_window_ui import Ui_ServerWind
 
@@ -20,31 +20,47 @@ from key_server import *
 import time
 
 
-class MainMenu(QMainWindow, UIMainWindow):
+class MainMenu(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setup_ui(self)
+        self.setupUi(self)
+        self.setWindowTitle("Main menu")
         self.M_ClientCreateButton.clicked.connect(self.create_client_window)
-        self.M_ServerOverviewButton.clicked.connect(self.create_server_overview)
-        self.M_CreateKeyServerButton.clicked.connect(self.create_keyserver_overview)
 
         self.client_windows = []
         self.newClientWindow = None
         self.server_overview = None
         self.keyserver_overview = None
 
-    def create_client_window(self):
-        self.newClientWindow = ClientWindow()
-        self.newClientWindow.show()
-        self.client_windows.append(self.newClientWindow)
-
-    def create_server_overview(self):
         self.server_overview = ServerOverview()
+        self.keyserver_overview = KeyServerOverview()
+
+        self.sg = QDesktopWidget().screenGeometry()
+
+        server_g = self.server_overview.geometry()
+        x = self.sg.width() - server_g.width()
+        y = 0
+
+        self.server_overview.move(x, y)
+
+        y = self.sg.height() - server_g.height()
+
+        self.keyserver_overview.move(x, y)
+
+        self.keyserver_overview.show()
         self.server_overview.show()
 
-    def create_keyserver_overview(self):
-        self.keyserver_overview = KeyServerOverview()
-        self.keyserver_overview.show()
+
+    def create_client_window(self):
+        self.newClientWindow = ClientWindow()
+        client_g = self.newClientWindow.geometry()
+        x = 10
+        y = int((self.sg.height() - client_g.height())/2)
+
+        self.newClientWindow.move(x,y)
+        self.newClientWindow.show()
+
+        self.client_windows.append(self.newClientWindow)
 
     def closeEvent(self, event):
         app = QApplication.instance()
