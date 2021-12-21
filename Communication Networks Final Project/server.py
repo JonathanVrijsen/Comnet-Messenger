@@ -73,7 +73,6 @@ class Server:
                 for username in json_string:
                     self.known_users.add(User(username))
             f.close()
-            print(json_string)
 
     def load_conversation(self):
         if os.path.isfile("conversations.txt"):
@@ -115,8 +114,6 @@ class Server:
                     sock.close()
                     time.sleep(0.43)
                 except error as e:
-                    if e.errno == errno.EADDRINUSE:
-                        print("MS can't listen on broadcast: already in use")
                     sock.close()
                     time.sleep(0.1)
 
@@ -133,23 +130,17 @@ class Server:
 
         elif byte_stream_in.messageType == ByteStreamType.keyrequest:
             client_pub_key = string_to_pubkey(byte_stream_in.content)
-            print("KS receivers client pubkey:")
-            print(client_pub_key)
 
-            print("KS sends own pubkey:")
-            print(self.pub_key)
             # send own public key to client
             byte_stream_out = ByteStream(ByteStreamType.pubkeyanswer, self.pub_key)
             connection_socket.send(byte_stream_out.outStream)  # send own public key
 
             # encrypt symmetric key and send to client
             new_sym_key = Fernet.generate_key()
-            print("KS sends symkey:")
-            print(new_sym_key)
+
             msg_bs = ByteStream(ByteStreamType.symkeyanswer, new_sym_key)
             msg = rsa_sendable(msg_bs.outStream, self.priv_key, client_pub_key)
-            print("KS sends symkey, encrypted")
-            print(msg)
+
             connection_socket.send(msg)
 
             # create new connected client
@@ -178,23 +169,21 @@ class Server:
 
                 if byte_stream_in.messageType == ByteStreamType.registertomain:
                     (username, sign) = rcvd_content.split(" - ", 1)
-                    print("MAIN SERVER: REGISTER TO MAIN")
-                    print(username)
-                    print(sign)
+
                     sign = sign[2:len(sign) - 1]
-                    print(sign)
+
 
                     decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
 
                     if username.encode('ascii') == decrypted_username:
-                        print("USER RGISTERED AT MAIN SERVER:", username)
+
                         new_user = User(username)
                         self.known_users.add(new_user)  # doesn't add if already in set
 
                 elif byte_stream_in.messageType == ByteStreamType.requestallids:
                     username = connected_client.user.username
                     first = True
-                    print(len(self.conversations))
+
                     for conv in self.conversations:
                         members = conv.members
                         if username in members:
@@ -212,21 +201,17 @@ class Server:
 
                 elif byte_stream_in.messageType == ByteStreamType.loginrequest:
                     (username, sign) = rcvd_content.split(" - ", 1)
-                    print("MAIN SERVER: LOGIN OF:", username)
                     sign = sign[2:len(sign) - 1]
                     decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
                     if username.encode('ascii') == decrypted_username:
-                        print("NOUS SOMMES ENTRES")
                         new_user = User(username)
                         connected_client.set_user(new_user)
 
                 elif byte_stream_in.messageType == ByteStreamType.contactrequest:
-                    print("CONTACT REQUEST AT MAIN SERVER")
                     contacts = ""
                     first = True
                     for user in self.known_users:
                         username = user.username
-                        print(connected_client.user.username)
                         # if username != connected_client.user.username:
                         # TODO filter in different way
                         if first:
@@ -234,14 +219,12 @@ class Server:
                             first = not first
                         else:
                             contacts = contacts + " - " + username
-                    print("send: ", contacts)
                     byte_stream_out = ByteStream(ByteStreamType.contactanswer, contacts)
                     out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                     connection_socket.send(out)
 
                 elif byte_stream_in.messageType == ByteStreamType.newconversation:
                     members = rcvd_content.split(" - ")
-                    print("MS receives members: ", members)
                     id = hash_string(rcvd_content)
                     conversation = Conversation(members, id)
                     self.conversations.append(conversation)
@@ -252,8 +235,6 @@ class Server:
                     id = rcvd_content[:40]
                     msg = rcvd_content[43:]
 
-                    print("MS receives msg: ", msg)
-
                     sender = connected_client.user
                     # TODO user is last registered, not last logged in
                     message = Message(sender.username, msg)
@@ -263,22 +244,18 @@ class Server:
                         if id == conversation.id:
                             # save message in conversation
                             conversation.add_message(message)
-                            print("conversation changed: ")
                             conversation.print_messages()
                             # find all the receivers
                             members = conversation.members
-                            print("conversation members: ", members)
                             break
 
                     byte_stream_out = ByteStream(ByteStreamType.message, str(id) + " - " + sender.username + " - " + msg)
                     for receiver in members:
                         # note that the sender is also a receiver, since it's possible that the sender is logged in at multiple clients
                         for tempConnectedClient in self.connected_clients:
-                            print(tempConnectedClient.user.username)
 
                             if tempConnectedClient.user.username is not None and receiver == tempConnectedClient.user.username and tempConnectedClient != connected_client:
                                 out = symm_encrypt(byte_stream_out.outStream, tempConnectedClient.symKey)
-                                print('MS sends message')
                                 tempConnectedClient.connection_socket.send(out)
 
                 elif byte_stream_in.messageType == ByteStreamType.requestmembers:
@@ -375,8 +352,6 @@ class Server:
         self.stop_socket.send(b)
         self.stop_socket.close()
 
-        print("MS needs to close ", len(self.current_threads), "threads")
         for thread in self.current_threads:
             thread.join(2)
-        print("MS threads closed")
 

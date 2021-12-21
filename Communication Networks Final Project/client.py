@@ -98,7 +98,6 @@ class Client:
                     self.server_socket = int(data[2])
                 time.sleep(0.27)
             except error as e:
-                if e.errno == errno.EADDRINUSE:
                 sock.close()
                 time.sleep(0.1)
 
