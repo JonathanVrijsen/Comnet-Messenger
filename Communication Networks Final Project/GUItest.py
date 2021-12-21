@@ -1,4 +1,6 @@
 import sys
+import threading
+
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -188,18 +190,17 @@ class ClientWindow(QWidget, UiForm):
         self.stackedWidget_2.setCurrentWidget(self.CC_standard)
 
     def get_conversations(self):
+        refresh_conversations_thread = threading.Thread(target=self.refresh_conversations)
+        refresh_conversations_thread.start()
+
+
+    def refresh_conversations(self):
         self.H_ContactList.clear()
         conv_names = self.client.get_conversations()
         print(conv_names)
 
         for name in conv_names:
             self.H_ContactList.addItem(QListWidgetItem(name))
-
-    # def refresh_contacts(self):
-    # self.contactList = self.client.request_contacts()
-
-    # for contact in self.contactList:
-    # self.H_ContactList.addItem(QListWidgetItem(contact))
 
 
 class ServerOverview(QWidget, UIServerWind):

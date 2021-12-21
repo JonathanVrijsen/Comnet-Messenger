@@ -255,6 +255,7 @@ class Client:
         while not self.all_conversations_received:
             time.sleep(0.1)
 
+        print("ALL CONVERSATIONS RECEIVED")
         self.all_conversations_received = False
         return self.all_conversation_members
 
