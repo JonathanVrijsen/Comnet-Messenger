@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import *
 
 from main_window_ui import UIMainWindow
 from client_window_ui import Ui_Form
-from server_window_ui import UIServerWind
+from server_window_ui import Ui_ServerWind
 
 from threading import *
 
@@ -225,10 +225,10 @@ class ClientWindow(QWidget, Ui_Form):
 
 
 
-class ServerOverview(QWidget, UIServerWind):
+class ServerOverview(QWidget, Ui_ServerWind):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setup_ui(self)
+        self.setupUi(self)
         self.setWindowTitle("Server Overview")
 
         self.MainServer = Server()
@@ -238,7 +238,15 @@ class ServerOverview(QWidget, UIServerWind):
 
         self.S_RegDataTable.setRowCount(10)
         self.S_RegDataTable.setColumnCount(3)
-        self.S_RegDataTable.setHorizontalHeaderLabels("Username;Pasword;Symkey".split(";"))
+        self.S_RegDataTable.setHorizontalHeaderLabels("ID;members;last message".split(";"))
+        self.S_LeftTableLabel.setText("All saved conversations:")
+
+        self.S_ConnectDataTable.setRowCount(10)
+        self.S_ConnectDataTable.setColumnCount(2)
+        self.S_ConnectDataTable.setHorizontalHeaderLabels("Username;Symkey".split(";"))
+        self.S_RightTableLabel.setText("Connected clients:")
+
+        self.S_RefreshButton.clicked.connect(self.update_data)
 
         self.stop_thread = False
         self.listen_thread = Thread(target=self.server_listen)
@@ -251,6 +259,28 @@ class ServerOverview(QWidget, UIServerWind):
             if self.stop_thread:
                 break
 
+    def update_data(self):
+        convs = self.MainServer.get_conv_data()
+        self.S_RegDataTable.clearContents()
+        i = 0
+        for conv in convs:
+            self.S_RegDataTable.setItem(i, 0, QTableWidgetItem(conv[0]))
+            self.S_RegDataTable.setItem(i, 1, QTableWidgetItem(conv[1]))
+            self.S_RegDataTable.setItem(i, 2, QTableWidgetItem(conv[2]))
+            i = i+1
+
+        con_clients = self.MainServer.get_connected_clients()
+
+        self.S_ConnectDataTable.clearContents()
+        i = 0
+        for con_client in con_clients:
+            if con_client.user is not None:
+                self.S_ConnectDataTable.setItem(i, 0, QTableWidgetItem(con_client.user.username))
+            else:
+                self.S_ConnectDataTable.setItem(i, 0, QTableWidgetItem("Unknown"))
+            self.S_ConnectDataTable.setItem(i, 1, QTableWidgetItem(str(con_client.symKey)))
+            i = i + 1
+
     def closeEvent(self, event):
 
         self.stop_thread = True
@@ -260,10 +290,10 @@ class ServerOverview(QWidget, UIServerWind):
         print("MS window threads closed:")
         event.accept()
 
-class KeyServerOverview(QWidget, UIServerWind):
+class KeyServerOverview(QWidget, Ui_ServerWind):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setup_ui(self)
+        self.setupUi(self)
         self.setWindowTitle("Keyserver Overview")
 
         self.KeyServer = KeyServer()
@@ -279,6 +309,8 @@ class KeyServerOverview(QWidget, UIServerWind):
         self.S_ConnectDataTable.setColumnCount(2)
         self.S_ConnectDataTable.setHorizontalHeaderLabels("Username;Symkey".split(";"))
 
+        self.S_LeftTableLabel.setText("Registered users:")
+        self.S_RightTableLabel.setText("Connected users:")
         self.S_RefreshButton.clicked.connect(self.update_data)
 
         self.stop_thread = False

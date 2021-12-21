@@ -249,24 +249,27 @@ class Server:
             elif byte_stream_in.messageType == ByteStreamType.logout:
                 connected_client.user = None
 
-    def listen_silently(self):
+    def get_conv_data(self):
+        ans = []
+        for conv in self.conversations:
+            users = ""
+            first = True
+            for user in conv.members:
+                if first:
+                    users = user
+                    first = not first
+                else:
+                    users = users + ", "+ user
 
-        if self.i == 0:
-            print("listening...")
-            self.server_socket.listen(64)
-            self.connection_socket, addr = self.server_socket.accept()
-            rcvd_content = self.connection_socket.recv(1024)
-            print("recieved!")
-            print(rcvd_content.decode("utf-8"))
-            self.i = self.i + 1
-            return rcvd_content.decode("utf-8"), addr
+            if len(conv.messages) >0:
+                lastmsg = conv.messages[len(conv.messages) - 1].content
+            else:
+                lastmsg = "None"
+            ans.append([conv.id,users,lastmsg])
+        return ans
 
-        else:
-            print("waf")
-            self.server_socket.listen(64)
-            rcvd_content = self.connection_socket.recv(1024)
-            print(rcvd_content.decode("utf-8"))
-            return rcvd_content.decode("utf-8"), (0, 0)
+    def get_connected_clients(self):
+        return self.connected_clients
 
     def close(self):
         # perhaps send close message to all connected_clients
