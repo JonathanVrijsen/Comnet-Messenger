@@ -101,7 +101,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.client = Client()
 
     def login(self):
-        self.username = self.H_usernameBox.toPlainText()
+        self.username = self.H_usernameBox.text()
         self.password = self.H_passwordBox.text()
         successful = self.client.login(self.username, self.password)
 
@@ -116,6 +116,8 @@ class ClientWindow(QWidget, Ui_Form):
 
         else:
             self.H_LogErrorTextBox.setText("Wrong username or password")
+
+        self.H_passwordBox.clear()
 
     def check_for_message(self):
         while True:
@@ -160,6 +162,10 @@ class ClientWindow(QWidget, Ui_Form):
         elif reg_error == RegisterErrorType.UsernameAlreadyInUse:
             self.H_RegErrorTextBox.setText("Username already in use")
         else:
+            self.H_RegUsernameBox.clear()
+            self.H_RegpasswordBox1.clear()
+            self.H_RegpasswordBox2.clear()
+            self.H_RegpasswordBox3.clear()
             self.H_RegErrorTextBox.setText("Succes!")
 
     def contact_clicked(self):
@@ -233,7 +239,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.client.stop_client()
 
         for thread in self.current_threads:
-            thread.join()
+            thread.join(1)
         del self.client
         event.accept()
 
@@ -300,7 +306,7 @@ class ServerOverview(QWidget, Ui_ServerWind):
 
         self.stop_thread = True
         self.MainServer.stop_listening()
-        self.listen_thread.join()
+        self.listen_thread.join(1)
         event.accept()
 
 class KeyServerOverview(QWidget, Ui_ServerWind):
@@ -368,7 +374,7 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
     def closeEvent(self, event):
         self.stop_thread = True
         self.KeyServer.stop_listening()
-        self.listen_thread.join()
+        self.listen_thread.join(1)
         event.accept()
 
 
