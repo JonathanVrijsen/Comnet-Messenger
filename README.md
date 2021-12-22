@@ -16,7 +16,7 @@ is described in detail in the [report.](https://github.com/JonathanVrijsen/Comne
 
 In the source code a couple of external libraries were used.
 In order to run the messaging application correctly the following
-libraries are necessary.
+libraries are necessary. The provided commands should be ran in the terminal.
 
 - PyQt5 
 
@@ -36,7 +36,7 @@ pip3 install cryptography
 
 ## Running the code
 
-To run the code and launch the application, the file main.py should be run.
+To run the code and launch the application, the file main.py should be ran.
 The program has been tested and therefore is compatible 
 for Windows and macOS. Other operating systems shouldn't be a problem
 as long as Python and the previously mentioned libraries are compatible for that operating system.
@@ -58,7 +58,7 @@ The Server Overview and Keyserver Overview windows can be used to analyse the se
 
 
 Clicking the button "Create new client" on the Main menu, generates a new client and displays a new client window.
-From this window, one can register new users and log into their account.
+From this window, one can register new users and log in to their account.
 
 <img alt="Login screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_LoginScreen.png" title="Login screen"/>
 
@@ -70,7 +70,7 @@ all the messages are shown in the window.
 
 ### Register and login
 
-Registering a new user is done by filling out the fields underneath "Or make an account:".
+Registering a new user is done by filling out the fields underneath "Or make a new account:".
 A user can be logged in by filling out the Username and Password fields at the top half of the window and clicking
 the login button.
 
