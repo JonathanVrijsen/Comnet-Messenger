@@ -77,7 +77,8 @@ the login button.
 
 Once logged in, the user can create a new conversation.
 First, click "Create conversation". This will show all possible contacts in the list on the left-hand side.
-Next, the desired conversation partner has to be selected and "Create conversation clicked". The conversation is created.
+Next, the desired conversation partner has to be selected and "Create conversation" clicked. The conversation is created.
+
 After a conversation has been initialized, the user can send messages in the conversation.
 First, select the conversation in which a message should be sent. Next, a message can be sent by inputting the
 message in the text box and clicking the send button.
@@ -95,7 +96,7 @@ It is also possible to create a group chat. This is done by selecting multiple c
 
 ### Logout
 
-In one client window, a user can be logged out and logged in again without losing any information.
+In one client window, any user can be logged out and logged in again without losing any information.
 
 <img alt="Logout" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/Logout.gif" title="Logout"/>
 
