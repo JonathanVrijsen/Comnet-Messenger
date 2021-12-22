@@ -54,7 +54,7 @@ The Server Overview and Keyserver Overview windows can be used to analyse the se
 
 <img alt="Server overview" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_ServerOverView.png" title="Server overview"/>
 
-Clicking on the button "Create new client" on the Main menu, generates a new client and displays a new client window.
+Clicking the button "Create new client" on the Main menu, generates a new client and displays a new client window.
 From this window, one can register new users and log into their account.
 
 <img alt="Login screen" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_LoginScreen.png" title="Login screen"/>
@@ -67,21 +67,37 @@ all the messages are shown in the window.
 
 ### Register and login
 
+Registering a new user is done by filling out the fields underneath "Or make an account:".
+A user can be logged in by filling out the Username and Password fields at the top half of the window and clicking
+the login button.
+
 <img alt="Register And Login" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/RegisterAndLogin.gif" title="Register And Login"/>
 
 ### Creating new conversation / Sending messages
+
+Once logged in, the user can create a new conversation.
+First, click "Create conversation". This will show all possible contacts in the list on the left-hand side.
+Next, the desired conversation partner has to be selected and "Create conversation clicked". The conversation is created.
+After a conversation has been initialized, the user can send messages in the conversation.
+First, select the conversation in which a message should be sent. Next, a message can be sent by inputting the
+message in the text box and clicking the send button.
+Receiving messages happens automatically and are shown once received.
 
 <img alt="CreateNewConv" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/CreateNewConv.gif" title="CreateNewConv"/>
 
 
 ### Creating group conversation
 
+It is also possible to create a group chat. This is done by selecting multiple conversation partners.
+
 <img alt="CreateGroupConv" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/CreateGroupConv.gif" title="CreateGroupConv"/>
 
 
 ### Logout
 
-<img alt="Logout" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/RegisterAndLogin.gif" title="Logout"/>
+In one client window, a user can be logged out and logged in again without losing any information.
+
+<img alt="Logout" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/Logout.gif" title="Logout"/>
 
 
 
@@ -89,8 +105,8 @@ all the messages are shown in the window.
 
 ## Contributors
 
-| <img src="https://avatars.githubusercontent.com/u/84011890?v=4" width="150"/> [Jonathan Vrijsen](https://github.com/JonathanVrijsen) | <img src="https://avatars.githubusercontent.com/u/49029691?v=4" width="150"/>[Wannes Nevens](https://github.com/WannesN) | <img src="https://avatars.githubusercontent.com/u/58397500?v=4" width="150"/>[Sam Van de Velde](https://github.com/SamVandeVelde) | <img src="https://avatars.githubusercontent.com/u/62985294?v=4" width="150"/>[Louis Van Eeckhoudt](https://github.com/Louis-Van-Eeckhoudt) |
-|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| [Jonathan Vrijsen](https://github.com/JonathanVrijsen) | [Wannes Nevens](https://github.com/WannesN) | [Sam Van de Velde](https://github.com/SamVandeVelde) | [Louis Van Eeckhoudt](https://github.com/Louis-Van-Eeckhoudt) |
+|--------------------------------------------------------|---------------------------------------------|------------------------------------------------------|---------------------------------------------------------------|
 
 
 
