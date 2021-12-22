@@ -54,6 +54,9 @@ The Server Overview and Keyserver Overview windows can be used to analyse the se
 
 <img alt="Server overview" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_ServerOverView.png" title="Server overview"/>
 
+<img alt="Keyserver overview" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/GUI_KeyServerOverView.png" title="Keyserver overview"/>
+
+
 Clicking the button "Create new client" on the Main menu, generates a new client and displays a new client window.
 From this window, one can register new users and log into their account.
 
@@ -100,9 +103,12 @@ In one client window, any user can be logged out and logged in again without los
 
 <img alt="Logout" src="https://github.com/JonathanVrijsen/Comnet-Messenger/blob/main/src/Images/Logout.gif" title="Logout"/>
 
+## Known issues
 
-
-
+- qdflljljsdf
+- lqsdmfjldmsf
+- sqldfjsdlf
+- fqsdfdsqf
 
 ## Contributors
 
