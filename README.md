@@ -105,9 +105,9 @@ In one client window, any user can be logged out and logged in again without los
 
 ## Known issues
 
-- qdflljljsdf
-- lqsdmfjldmsf
-- sqldfjsdlf
+- Closing a client window can sometimes still throw some errors.
+- It is possible that "Refresh conversation" needs to be clicked multiple times to actually refresh the conversations.
+- Thread safety could be improved.
 - fqsdfdsqf
 
 ## Contributors

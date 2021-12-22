@@ -90,6 +90,7 @@ class ClientWindow(QWidget, Ui_Form):
 
         self.current_threads = []
         self.stop_all_threads = False
+        self.lock = threading.Lock()
 
         self.username = None
         self.contactList = []
@@ -122,9 +123,9 @@ class ClientWindow(QWidget, Ui_Form):
             self.check_for_message_once()
 
     def check_for_message_once(self):
-
+        self.lock.acquire()
         targets = self.H_ContactList.selectedItems()
-        if len(targets)>0:
+        if len(targets) > 0:
             target = targets[0]
             possible_senders = target.text().split(", ")
 
@@ -132,6 +133,7 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_ConvList.clear()
             for message in messages:
                 self.H_ConvList.addItem(QListWidgetItem(message))
+        self.lock.release()
 
     def logout(self): #on logout all windows are cleared
         self.stackedWidget.setCurrentWidget(self.page)
@@ -224,9 +226,11 @@ class ClientWindow(QWidget, Ui_Form):
         # self.H_ContactList.clear()
 
         conv_names = self.client.get_conversations()
+        self.lock.acquire()
         self.H_ContactList.clear()
         for name in conv_names:
             self.H_ContactList.addItem(QListWidgetItem(name))
+        self.lock.release()
 
     def closeEvent(self, event):
         self.stop_all_threads = True
