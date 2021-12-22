@@ -43,7 +43,7 @@ class Server:
         self.stop_all_threads = False
 
         self.known_users = set()  # empty set (basically list with unique elements)
-        self.load_known_users()
+        self.load_known_users() #load server state from file
         self.load_conversation()
 
         self.server_port = 15600
@@ -52,20 +52,19 @@ class Server:
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.stop_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('127.0.0.1', self.server_port))
-        #self.stop_socket.bind(('127.0.0.1', self.stop_port))
 
-        (self.pub_key, self.priv_key) = generate_keys()
+        (self.pub_key, self.priv_key) = generate_keys() #generate the asymmetric keys
         f_key = open("serverCommonKey.txt", 'rb')
         self.serverCommonKey = f_key.read()
         f_key.close()
 
         self.i = 0
 
-        broadcast_thread = threading.Thread(target=self.broadcast_addr)
+        broadcast_thread = threading.Thread(target=self.broadcast_addr) #start the broadcasting thread
         broadcast_thread.start()
         self.current_threads.append(broadcast_thread)
 
-    def load_known_users(self):
+    def load_known_users(self): #load from file
         if os.path.isfile("known_users_main_server.txt"):
             f = open("known_users_main_server.txt", "r")
             json_string = json.loads(f.read())
@@ -74,7 +73,7 @@ class Server:
                     self.known_users.add(User(username))
             f.close()
 
-    def load_conversation(self):
+    def load_conversation(self): #load from file
         if os.path.isfile("conversations.txt"):
             f = open("conversations.txt", "r")
             json_string = json.loads(f.read())
@@ -94,7 +93,7 @@ class Server:
             f.close()
 
 
-    def broadcast_addr(self):
+    def broadcast_addr(self): #periodically broadcast the address
         interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
         allips = [ip[-1][0] for ip in interfaces]
 
@@ -117,7 +116,7 @@ class Server:
                     sock.close()
                     time.sleep(0.1)
 
-    def listen(self):
+    def listen(self): #listen for first messages and exchange keys
         self.server_socket.listen(64)
         connection_socket, addr = self.server_socket.accept()
         rcvd_content = connection_socket.recv(1024)
@@ -154,7 +153,7 @@ class Server:
 
         # note that it's possible that multiple clients are logged in to the same user
 
-    def connected_client_listen(self, connected_client):
+    def connected_client_listen(self, connected_client): #listen to a specific client
         while connected_client.active:
 
             if self.stop_all_threads:
@@ -167,24 +166,22 @@ class Server:
                 byte_stream_in = ByteStream(rcvd)
                 rcvd_content = byte_stream_in.content
 
-                if byte_stream_in.messageType == ByteStreamType.registertomain:
+                if byte_stream_in.messageType == ByteStreamType.registertomain: #mainserver is notified of new register, and add's username to database
                     (username, sign) = rcvd_content.split(" - ", 1)
 
                     sign = sign[2:len(sign) - 1]
-
-
                     decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
 
-                    if username.encode('ascii') == decrypted_username:
+                    if username.encode('ascii') == decrypted_username: #check signature
 
                         new_user = User(username)
                         self.known_users.add(new_user)  # doesn't add if already in set
 
-                elif byte_stream_in.messageType == ByteStreamType.requestallids:
+                elif byte_stream_in.messageType == ByteStreamType.requestallids: #client wants all conversation ids
                     username = connected_client.user.username
                     first = True
 
-                    for conv in self.conversations:
+                    for conv in self.conversations: #collect all conversation sender is part of
                         members = conv.members
                         if username in members:
                             if first:
@@ -199,7 +196,7 @@ class Server:
                     out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                     connected_client.connection_socket.send(out)
 
-                elif byte_stream_in.messageType == ByteStreamType.loginrequest:
+                elif byte_stream_in.messageType == ByteStreamType.loginrequest: #mainserver is notified of new login and sets the username of this client
                     (username, sign) = rcvd_content.split(" - ", 1)
                     sign = sign[2:len(sign) - 1]
                     decrypted_username = symm_decrypt(sign.encode('ascii'), self.serverCommonKey)
@@ -207,13 +204,11 @@ class Server:
                         new_user = User(username)
                         connected_client.set_user(new_user)
 
-                elif byte_stream_in.messageType == ByteStreamType.contactrequest:
+                elif byte_stream_in.messageType == ByteStreamType.contactrequest: #return all registered usernames
                     contacts = ""
                     first = True
                     for user in self.known_users:
                         username = user.username
-                        # if username != connected_client.user.username:
-                        # TODO filter in different way
                         if first:
                             contacts = contacts + username
                             first = not first
@@ -223,20 +218,19 @@ class Server:
                     out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                     connection_socket.send(out)
 
-                elif byte_stream_in.messageType == ByteStreamType.newconversation:
+                elif byte_stream_in.messageType == ByteStreamType.newconversation: #server is asked to create a new conversation
                     members = rcvd_content.split(" - ")
                     id = hash_string(rcvd_content)
                     conversation = Conversation(members, id)
                     self.conversations.append(conversation)
 
-                elif byte_stream_in.messageType == ByteStreamType.message:
+                elif byte_stream_in.messageType == ByteStreamType.message: #server receives actual chat message
                     # extract conversation id and content from rcvd_content
                     # string has the following form: id-content, so split at first occurence of "-"
                     id = rcvd_content[:40]
                     msg = rcvd_content[43:]
 
                     sender = connected_client.user
-                    # TODO user is last registered, not last logged in
                     message = Message(sender.username, msg)
 
                     # check if message id is in existing conversations
@@ -257,7 +251,7 @@ class Server:
                                 out = symm_encrypt(byte_stream_out.outStream, tempConnectedClient.symKey)
                                 tempConnectedClient.connection_socket.send(out)
 
-                elif byte_stream_in.messageType == ByteStreamType.requestmembers:
+                elif byte_stream_in.messageType == ByteStreamType.requestmembers: #client asks to return all conv members
                     id = rcvd_content
                     client_is_member = False
                     client_name = connected_client.user.username
@@ -280,7 +274,7 @@ class Server:
                         out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                         connected_client.connection_socket.send(out)
 
-                elif byte_stream_in.messageType == ByteStreamType.getconversation:
+                elif byte_stream_in.messageType == ByteStreamType.getconversation: #clients asks for a full conversation
                     id = byte_stream_in.content
                     for conv in self.conversations:
                         if id == conv.id:
@@ -293,7 +287,7 @@ class Server:
                 elif byte_stream_in.messageType == ByteStreamType.logout:
                     connected_client.user = None
 
-    def get_conv_data(self):
+    def get_conv_data(self): #return conversation data to GUI
         ans = []
         for conv in self.conversations:
             users = ""
@@ -315,7 +309,7 @@ class Server:
     def get_connected_clients(self):
         return self.connected_clients
 
-    def store_conversations(self):
+    def store_conversations(self): #store all conversation in file on shutdown
         if len(self.conversations) > 0:
             conv_json = []
             for conv in self.conversations:
@@ -326,7 +320,7 @@ class Server:
             file.write(json_string)
             file.close()
 
-    def store_known_users(self):
+    def store_known_users(self): #store all known users in file on shutdown
         #since JSON cannot serialize sets, I believe
         known_users_list = []
         if len(self.known_users) > 0:
