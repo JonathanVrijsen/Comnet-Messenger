@@ -4,6 +4,7 @@ from custom_error import *
 import re
 
 #The class ByteStream is a protocol used to transmit data. It's type can be seen as a header of the data, specifying the goal of the data
+#It is used to convert a certain content to an outstream, which is a string that can be sent, and vice versa
 
 #It was created at the beginning of the project, before the developers had any experience with Python.
 #Due to a lack of time, it has not been updated with a more efficient and elegant solution (for example: JSON) yet.

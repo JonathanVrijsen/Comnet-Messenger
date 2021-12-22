@@ -1,5 +1,6 @@
 import enum
 
+# Types of a ByteStream. More explanation: see byte_stream.py
 
 class ByteStreamType(enum.Enum):
     publickeyrequest = 1
@@ -28,4 +29,3 @@ class ByteStreamType(enum.Enum):
     conversation = 24
     logout = 25
     stoplistening = 26
-    # TODO add (pls stop)
