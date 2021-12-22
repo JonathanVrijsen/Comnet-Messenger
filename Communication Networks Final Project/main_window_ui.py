@@ -57,7 +57,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "Available, A messenging app by:"))
+        self.label.setText(_translate("MainWindow", "Available, A messaging app by:"))
         self.label_2.setText(_translate("MainWindow", "Jonathan Vrijsen, Louis Van Eeckhoudt, Sam Van De Velde and Wannes Nevens"))
         self.label_3.setText(_translate("MainWindow", "Please click the button underneath to create a new client"))
         self.M_ClientCreateButton.setText(_translate("MainWindow", "Create new client"))
