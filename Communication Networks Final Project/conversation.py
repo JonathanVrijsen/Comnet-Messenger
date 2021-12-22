@@ -2,7 +2,6 @@ import json
 
 from message import Message
 
-
 class Conversation:
     def __init__(self, members, id):
         self.messages = []
@@ -10,14 +9,17 @@ class Conversation:
         self.id = id
 
     def to_json(self):
+        #create a dict based on all the contents of the conversation. This dictionarry is converted to a json string later on
         json_dict = dict()
-
         messages_json_list = []
         members_json_list = []
+
         for m in self.messages:
+            #append all messages as a 2-element list
             message = [str(m.sender), str(m.content)]
             messages_json_list.append(message)
         for m in self.members:
+            #append all usernames (members of the conversation)
             members_json_list.append(m)
 
         json_dict["messages"] = json.dumps(messages_json_list)
@@ -26,10 +28,10 @@ class Conversation:
 
         return json_dict
 
-
     def add_message(self, message):
         self.messages.append(message)
 
+    #Used to encode conversations to a string format. JSON could've also been used, but due to a lack of time, the first solution has been kept
     def encode_conversation(self):
         # convention: id -- member1;;;member2;;;...;;;memberi -- sender;,;message1;;;sender;,;message2;;;...;;;sender;,;messagei
         to_encode_string = ""
@@ -49,6 +51,7 @@ class Conversation:
 
         return to_encode_string
 
+    #Used to decode a string to a conversation object
     def decode_conversation(self, to_decode_string):
 
         # first create an empty conversation, use this function on the empty conversation
