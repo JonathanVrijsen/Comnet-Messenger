@@ -37,8 +37,7 @@ class KeyServer:
 
         # SOCK_STREAM connection oriented -> two-way byte streams
         self.stop_socket = socket(AF_INET, SOCK_STREAM)
-        self.server_socket.bind(('127.0.0.1', self.server_port))  # '' contains addresses, when empty it means all
-        #self.stop_socket.bind(('127.0.0.1', self.stop_port))
+        self.server_socket.bind(('127.0.0.1', self.server_port))
 
         (self.pub_key, self.priv_key) = generate_keys()
 
@@ -47,7 +46,6 @@ class KeyServer:
         self.stop_all_threads = False
 
         self.username_password_pairs = []  # already registered users
-        #self.database = dict()  #{"login": ["password", [("id1", "key1"), ("id2", "key2")]]}
 
         f_key = open("serverCommonKey.txt",'rb')
         self.server_common_key = f_key.read()
@@ -58,13 +56,13 @@ class KeyServer:
         self.load_keys()
         self.load_registered_users()
 
-        broadcast_thread = threading.Thread(target = self.broadcast_addr)
+        broadcast_thread = threading.Thread(target = self.broadcast_addr) #thread for broadcasting
         broadcast_thread.start()
         self.current_threads.append(broadcast_thread)
 
 
 
-    def broadcast_addr(self):
+    def broadcast_addr(self): #broadcast address, identical to main server
         interfaces = getaddrinfo(host=gethostname(), port=None, family=AF_INET)
         allips = [ip[-1][0] for ip in interfaces]
 
@@ -89,7 +87,7 @@ class KeyServer:
                     sock.close()
                     time.sleep(0.1)
 
-    def load_keys(self):
+    def load_keys(self): #load from file
         if os.path.isfile("conversation_keys.txt"):
             f = open("conversation_keys.txt", "r")
             json_keys = f.read().splitlines()
@@ -101,7 +99,7 @@ class KeyServer:
                     key = pair["key"]
                     self.conversation_keys[id] = str(key)
 
-    def load_registered_users(self):
+    def load_registered_users(self): #load from file
         if os.path.isfile("registered_users.txt"):
             f = open("registered_users.txt", "r")
             json_string = json.loads(f.read())
@@ -109,7 +107,7 @@ class KeyServer:
             for pair in json_string:
                 self.database.append((pair[0], pair[1]))
 
-    def listen(self):
+    def listen(self): #listen for initial connection and exchange keys (identical to mainserver)
         self.server_socket.listen(64)
         connection_socket, addr = self.server_socket.accept()
         rcvd_content = connection_socket.recv(1024)
@@ -157,7 +155,7 @@ class KeyServer:
         if rcvd_content != b"":
             self.handle_message(rcvd_content, connection_socket)
 
-    def connected_client_listen(self, connected_client):
+    def connected_client_listen(self, connected_client): #listen to each specific client
         connected_client_logged_in = False
         while connected_client.active:
             if self.stop_all_threads:
@@ -170,20 +168,19 @@ class KeyServer:
             type = byte_stream_in.messageType
             content = byte_stream_in.content
 
-            if type == ByteStreamType.registerrequest:
+            if type == ByteStreamType.registerrequest: #registerrequest
                 (username, password) = content.split(' - ', 1)
-                if self.check_existence_of_account(username):
-                    # raise CustomError(ServerErrorTypes.ServerErrorType.AccountAlreadyExists)
+                if self.check_existence_of_account(username): #check if username already in use
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, "failed")
                 else:
-                    self.database.append((username, password))
+                    self.database.append((username, password)) #if succesfull send signature
                     sign = symm_encrypt(username.encode('ascii'), self.server_common_key)
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.registeranswer, str(sign))
 
                 out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
                 connection_socket.send(out)
 
-            elif type == ByteStreamType.loginrequest:
+            elif type == ByteStreamType.loginrequest: #client request login, first only username is sent
                 user_exists = False
                 username = content
                 for name_pw_pair in self.database:
@@ -191,23 +188,23 @@ class KeyServer:
                         # the user exist
                         user_exists = True
 
-                if user_exists:
+                if user_exists: #check if user exists
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.passwordrequest, "sendpassword")
                     new_user = User(username)
-                    connected_client.set_user(new_user) #notice: password not yet given, so client isn't able yet to receive keys
+                    connected_client.set_user(new_user)
 
                 else:
                     answer_bs = ByteStream(byte_stream_type.ByteStreamType.loginanswer, "usernonexistent")
                 out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
                 connection_socket.send(out)
 
-            elif type == ByteStreamType.passwordanswer:
+            elif type == ByteStreamType.passwordanswer: #second step of login: client sends (hashed) password
                 password = content
                 password_correct = False
                 user = connected_client.user
                 username = user.username
 
-                for temp in self.database:
+                for temp in self.database: #password is checked in database
                     if temp[0] == username and password == temp[1]:
                         password_correct = True
                         break
@@ -224,7 +221,7 @@ class KeyServer:
                 out = symm_encrypt(answer_bs.outStream, connected_client.symKey)
                 connection_socket.send(out)
 
-            elif type == ByteStreamType.newconversation:
+            elif type == ByteStreamType.newconversation: #client makes new conversation and asks for conversationkey
                 if connected_client_logged_in:
                     id = content
                     conversation_key = Fernet.generate_key()
@@ -235,7 +232,7 @@ class KeyServer:
                     out = symm_encrypt(byte_stream_out.outStream, connected_client.symKey)
                     connected_client.connection_socket.send(out)
 
-            elif type == ByteStreamType.requestconversationkey:
+            elif type == ByteStreamType.requestconversationkey: #client wants conversation key
                 if connected_client_logged_in:
                     id = content
                     conversation_key = self.conversation_keys[id]
@@ -248,21 +245,14 @@ class KeyServer:
                 connected_client_logged_in = False
                 connected_client.user = None
 
-    def get_users(self):
+    def get_users(self): #return users to GUI
         return self.database
 
-    def get_connected_clients(self):
+    def get_connected_clients(self): #return connection to GUI
         return self.connected_clients
 
-    def listen_silently(self):
 
-        self.server_socket.listen(64)
-        connection_socket, addr = self.server_socket.accept()
-        rcvd_content = connection_socket.recv(1024)
-
-        return rcvd_content.decode("utf-8"), addr
-
-    def store_keys(self):
+    def store_keys(self): #store keys to file
 
         ids = self.conversation_keys.keys()
         if len(ids) > 0:
@@ -282,7 +272,7 @@ class KeyServer:
 
             file.close()
 
-    def store_users(self):
+    def store_users(self): #store users in file
         if len(self.database) > 0:
             json_string = json.dumps(self.database)
             f = open("registered_users.txt", "w")
@@ -311,12 +301,6 @@ class KeyServer:
 
     def add_key(self, login, id, key):
         self.database[login][1].append((id, key))
-
-    def load(self, location):
-        pass
-
-    def write(self, location):
-        pass
 
     def check_existence_of_account(self, username):
         for temp in self.database:
