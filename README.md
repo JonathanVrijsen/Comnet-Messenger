@@ -1,6 +1,6 @@
 # Welcome to Available chatapp
 
-Available is a messaging application created in python.
+Available is a messaging application created using Python.
 This project was completed in order to pass the course ELEC-H417: "Communication Networks Protocols and Architectures"
 taught at the ULB by professor Jean-Michel Dricot.
 
@@ -10,7 +10,7 @@ The application relies on a centralized architecture,
 meaning a central server handles the communication between
 clients. An extra server, called key server, was implemented
 to ensure private communication. The complete architecture
-is described in detail in the [report.](https://github.com/link_to_report)
+is described in detail in the [report.](https://github.com/JonathanVrijsen/Comnet-Messenger/tree/main/src/Communication_Networks__Project_Report.pdf)
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ pip3 install cryptography
 To run the code and launch the application, the file main.py should be run.
 The program has been tested and therefore is compatible 
 for Windows and macOS. Other operating systems shouldn't be a problem
-as long as python and the previously mentioned libraries are compatible for that operating system.
+as long as Python and the previously mentioned libraries are compatible for that operating system.
 
 ## Features
 
@@ -105,10 +105,10 @@ In one client window, any user can be logged out and logged in again without los
 
 ## Known issues
 
-- Closing a client window can sometimes still throw some errors.
-- It is possible that "Refresh conversation" needs to be clicked multiple times to actually refresh the conversations.
-- Thread safety could be improved.
-- fqsdfdsqf
+- Refreshing doesn't always work from the first time, and causes a non-fatal exception from time to time.
+- Closing down the application takes a while, and doesn't always succeed
+
+The main reason for these bugs can be linked to threading, and can be solved by properly ensuring thread safety.  This is thus the main point of improvement for this project.
 
 ## Contributors
 
