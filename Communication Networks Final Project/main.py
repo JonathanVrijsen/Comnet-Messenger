@@ -20,11 +20,12 @@ from key_server import *
 import time
 
 
-class MainMenu(QMainWindow, Ui_MainWindow):
+class MainMenu(QMainWindow, Ui_MainWindow): #Set up of mainwi
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowTitle("Main menu")
+
         self.M_ClientCreateButton.clicked.connect(self.create_client_window)
 
         self.client_windows = []
@@ -32,26 +33,22 @@ class MainMenu(QMainWindow, Ui_MainWindow):
         self.server_overview = None
         self.keyserver_overview = None
 
-        self.server_overview = ServerOverview()
+        self.server_overview = ServerOverview() #Create the Main and key server windows immediatly
         self.keyserver_overview = KeyServerOverview()
 
-        self.sg = QDesktopWidget().screenGeometry()
-
+        self.sg = QDesktopWidget().screenGeometry() #code to place server windows on right hand side of screen
         server_g = self.server_overview.geometry()
         x = self.sg.width() - server_g.width()
         y = 0
-
         self.server_overview.move(x, y)
-
         y = self.sg.height() - server_g.height()
-
         self.keyserver_overview.move(x, y)
 
         self.keyserver_overview.show()
         self.server_overview.show()
 
 
-    def create_client_window(self):
+    def create_client_window(self): #creates a clientwindow when button is clicked
         self.newClientWindow = ClientWindow()
         client_g = self.newClientWindow.geometry()
         x = 10
@@ -86,7 +83,6 @@ class ClientWindow(QWidget, Ui_Form):
         self.H_ContactList.clicked.connect(self.contact_clicked)
         self.H_sendButton.clicked.connect(self.send_msg)
         self.H_RegButton.clicked.connect(self.register)
-        # self.H_Refresh_Contacts.clicked.connect(self.refresh_contacts)
         self.H_CreateNewConvButton.clicked.connect(self.create_conversation)
         self.H_CC_BackButton.clicked.connect(self.exit_CC)
         self.H_CC_AddConvButton.clicked.connect(self.finalise_conversations)
@@ -96,11 +92,10 @@ class ClientWindow(QWidget, Ui_Form):
         self.stop_all_threads = False
 
         self.username = None
-        # self.password = None
         self.contactList = []
-        self.client = Client()
+        self.client = Client() #Each window creates it's own client
 
-    def login(self):
+    def login(self): #on login clicked, start login process:
         self.username = self.H_usernameBox.text()
         self.password = self.H_passwordBox.text()
         successful = self.client.login(self.username, self.password)
@@ -119,7 +114,7 @@ class ClientWindow(QWidget, Ui_Form):
 
         self.H_passwordBox.clear()
 
-    def check_for_message(self):
+    def check_for_message(self): #loop on thread to ask for new messages
         while True:
             if self.stop_all_threads:
                 break
@@ -138,7 +133,7 @@ class ClientWindow(QWidget, Ui_Form):
             for message in messages:
                 self.H_ConvList.addItem(QListWidgetItem(message))
 
-    def logout(self):
+    def logout(self): #on logout all windows are cleared
         self.stackedWidget.setCurrentWidget(self.page)
         self.H_passwordBox.clear()
         self.setWindowTitle("NewClient")
@@ -168,7 +163,7 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_RegpasswordBox3.clear()
             self.H_RegErrorTextBox.setText("Succes!")
 
-    def contact_clicked(self):
+    def contact_clicked(self): #if a contact is clicked, immediately check for new messages
         self.check_for_message_once()
 
     def send_msg(self):
@@ -190,7 +185,7 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_MsgErrorLabel.setText("No target was selected")
 
 
-    def create_conversation(self):
+    def create_conversation(self): #switch to create conversationview
         self.stackedWidget_2.setCurrentWidget(self.CC_activated)
         self.H_CC_AllUserList.clear()
         self.client.request_contacts()
@@ -199,7 +194,7 @@ class ClientWindow(QWidget, Ui_Form):
         for user in all_users:
             self.H_CC_AllUserList.addItem(QListWidgetItem(user))
 
-    def finalise_conversations(self):
+    def finalise_conversations(self): #actually make the new conversation according to selected users
         targets = self.H_CC_AllUserList.selectedItems()
         if len(targets) != 0:
             targets_str = []
@@ -216,7 +211,7 @@ class ClientWindow(QWidget, Ui_Form):
             self.H_CC_ErrorLabel.setText("No participants were selected")
         # TODO create new conv in client with this list
 
-    def exit_CC(self):
+    def exit_CC(self): #leave create conv window without creating conv
         self.stackedWidget_2.setCurrentWidget(self.CC_standard)
 
     def get_conversations(self):
@@ -225,7 +220,7 @@ class ClientWindow(QWidget, Ui_Form):
         self.current_threads.append(refresh_conversations_thread)
 
 
-    def refresh_conversations(self):
+    def refresh_conversations(self): #check for new conversations
         # self.H_ContactList.clear()
 
         conv_names = self.client.get_conversations()
@@ -252,7 +247,7 @@ class ServerOverview(QWidget, Ui_ServerWind):
         self.setupUi(self)
         self.setWindowTitle("Server Overview")
 
-        self.MainServer = Server()
+        self.MainServer = Server() #create the Mainserver object
 
         self.S_PrvtKeyLabel.setText(str(self.MainServer.priv_key))
         self.S_PblcKeyLabel.setText(str(self.MainServer.pub_key))
@@ -273,14 +268,14 @@ class ServerOverview(QWidget, Ui_ServerWind):
         self.listen_thread = Thread(target=self.server_listen)
         self.listen_thread.start()
 
-    def server_listen(self):
+    def server_listen(self): #loop on thread to listin to incoming messages
         i = 0
         while True:
             self.MainServer.listen()
             if self.stop_thread:
                 break
 
-    def update_data(self):
+    def update_data(self): #request data saved in server to display
         convs = self.MainServer.get_conv_data()
         self.S_RegDataTable.clearContents()
         i = 0
@@ -315,14 +310,14 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
         self.setupUi(self)
         self.setWindowTitle("Keyserver Overview")
 
-        self.KeyServer = KeyServer()
+        self.KeyServer = KeyServer() #create keyserver object
 
         self.S_PrvtKeyLabel.setText(str(self.KeyServer.priv_key))
         self.S_PblcKeyLabel.setText(str(self.KeyServer.pub_key))
 
         self.S_RegDataTable.setRowCount(10)
         self.S_RegDataTable.setColumnCount(2)
-        self.S_RegDataTable.setHorizontalHeaderLabels("Username;Pasword".split(";"))
+        self.S_RegDataTable.setHorizontalHeaderLabels("Username;Password".split(";"))
 
         self.S_ConnectDataTable.setRowCount(10)
         self.S_ConnectDataTable.setColumnCount(2)
@@ -336,20 +331,13 @@ class KeyServerOverview(QWidget, Ui_ServerWind):
         self.listen_thread = Thread(target=self.server_listen)
         self.listen_thread.start()
 
-    def server_listen(self):
+    def server_listen(self): #loop on thread for listening
         while True:
             self.KeyServer.listen()
             if self.stop_thread:
                 break
-            # users = self.KeyServer.get_users()
-            # self.S_RegDataTable.clear()
-            # i=0
-            # for j in users:
-            #   self.S_RegDataTable.setItem(i, 0, QTableWidgetItem(j))
-            #  self.S_RegDataTable.setItem(i, 1, QTableWidgetItem(users[j][0]))
-            # i=i+1
 
-    def update_data(self):
+    def update_data(self):#request data to update display
         reg_users = self.KeyServer.get_users()
 
         self.S_RegDataTable.clearContents()
