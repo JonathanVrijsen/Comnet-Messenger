@@ -3,41 +3,47 @@ from byte_stream_error_types import *
 from custom_error import *
 import re
 
+#The class ByteStream is a protocol used to transmit data. It's type can be seen as a header of the data, specifying the goal of the data
+
+#It was created at the beginning of the project, before the developers had any experience with Python.
+#Due to a lack of time, it has not been updated with a more efficient and elegant solution (for example: JSON) yet.
 
 def constructor_info(message_type, content):
+    #construct outstream (string) based on type and content of the ByteStream
+
     # enum switch-like attempt (Python lacks a proper enum switch
     if message_type == byte_stream_type.ByteStreamType.publickeyrequest:
-        out_string = "publickeyrequest - " + content  # content = "clientIP"
+        out_string = "publickeyrequest - " + content
     elif message_type == byte_stream_type.ByteStreamType.registerrequest:
-        out_string = "registerrequest - " + content  # content = "clientIP - username - password"
+        out_string = "registerrequest - " + content
     elif message_type == byte_stream_type.ByteStreamType.loginrequest:
-        out_string = "loginrequest - " + content  # content = "clientIP - username - password"
+        out_string = "loginrequest - " + content
     elif message_type == byte_stream_type.ByteStreamType.registeranswer:
-        out_string = "registeranswer - " + content  # content = "succes/failed"
+        out_string = "registeranswer - " + content
     elif message_type == byte_stream_type.ByteStreamType.passwordrequest:
-        out_string = "passwordrequest - " + content  # content = "user exists"
+        out_string = "passwordrequest - " + content
     elif message_type == byte_stream_type.ByteStreamType.passwordanswer:
-        out_string = "passwordanswer - " + content  # content = "password"
+        out_string = "passwordanswer - " + content
     elif message_type == byte_stream_type.ByteStreamType.loginanswer:
-        out_string = "loginanswer - " + content # content = "succes/failed"
+        out_string = "loginanswer - " + content
     elif message_type == byte_stream_type.ByteStreamType.contactrequest:
-        out_string = "contactrequest" # content = \
+        out_string = "contactrequest"
     elif message_type == byte_stream_type.ByteStreamType.contactanswer:
-        out_string = "contactanswer - " + content # content = list of usernames
+        out_string = "contactanswer - " + content
     elif message_type == byte_stream_type.ByteStreamType.keyrequest:
-        out_string = "keyrequest - " + str(content)  # content = public key of sender
+        out_string = "keyrequest - " + str(content)
     elif message_type == byte_stream_type.ByteStreamType.pubkeyanswer:
-        out_string = "pubkeyanswer - " + str(content)  # content = public key of sender
+        out_string = "pubkeyanswer - " + str(content)
     elif message_type == byte_stream_type.ByteStreamType.symkeyanswer:
-        out_string = "symkeyanswer - " + str(content)  # content = sym key of sender
+        out_string = "symkeyanswer - " + str(content)
     elif message_type == byte_stream_type.ByteStreamType.passwordcorrect:
         out_string = "passwordcorrect - " + str(content)
     elif message_type == byte_stream_type.ByteStreamType.passwordwrong:
-        out_string = "passwordwrong" # content = \
+        out_string = "passwordwrong"
     elif message_type == byte_stream_type.ByteStreamType.registertomain:
-        out_string = "registertomain - " + content # content = list of usernames
+        out_string = "registertomain - " + content
     elif message_type == byte_stream_type.ByteStreamType.newconversation:
-        out_string = "newconversation - " + content #content is list of members
+        out_string = "newconversation - " + content
     elif message_type == byte_stream_type.ByteStreamType.message:
         out_string = "message - " + content #content id (len(id) is 40) - message
     elif message_type == byte_stream_type.ByteStreamType.requestconversationkey:
@@ -57,7 +63,7 @@ def constructor_info(message_type, content):
     elif message_type == byte_stream_type.ByteStreamType.logout:
         out_string = "logout"
     else:
-        raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)  # todo add if more cases
+        raise CustomError(ByteStreamErrorType.NoMessageTypeMatch)
     out_stream = out_string.encode("utf-8")
     return message_type, content, out_stream
 
@@ -71,7 +77,11 @@ def constructor_bytestream(out_stream):
     return message_type, content, out_stream
 
 
+#Based on regex, commonly used in f.e. C++
+
 def extract_from_byte_string(out_string):
+    #extract type and content based on a string
+
     if re.search(r"^publickeyrequest$", out_string) is not None:
         message_type = byte_stream_type.ByteStreamType.publickeyrequest
         content = None
@@ -179,9 +189,7 @@ def extract_from_byte_string(out_string):
 
 
 class ByteStream:
-    #    content = None  # in main server: encrypted by symmetric key related to conversation
-    #    messageType = None
-    #    outStream = None
+    #Two constructors required: if string is given, find type and content. If content and type are given, construct string
     def __init__(self, *args):
         if len(args) >= 2:
             self.messageType, self.content, self.outStream = constructor_info(args[0], args[1])
